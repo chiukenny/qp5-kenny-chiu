@@ -1,0 +1,29 @@
+\documentclass[10pt]{article}
+\input{../report/header}
+\input{../report/defs}
+
+
+\begin{document}
+
+\tableofcontents
+
+\newpage
+
+\section{Unbiased Implicit Variational Inference}
+
+Based on \citet{Titsias:2019}.
+
+\begin{itemize}
+
+\item
+Authors introduce unbiased implicit variational inference (UIVI) that defines a flexible variational family. Like semi-implicit variational inference (SIVI), UIVI uses an implicit variational distribution $q_\theta(z)=\int q_\theta(z|\varepsilon)q(\varepsilon)d\varepsilon$ where $q_\theta(z|\varepsilon)$ is a reparameterizable distribution whose parameters can be outputs of some neural network $g$, i.e., $q_\theta(z|\varepsilon)=h(u;g(\varepsilon;\theta))$ with $u\sim q(u)$. \todo assumptions, entropy component of gradient requires MC estimation via reverse conditional
+
+\end{itemize}
+
+
+\newpage
+
+\bibliographystyle{plainnat}
+\bibliography{../report/qp}
+
+\end{document}
