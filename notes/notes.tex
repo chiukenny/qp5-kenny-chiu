@@ -16,7 +16,14 @@ Based on \citet{Titsias:2019}.
 \begin{itemize}
 
 \item
-Authors introduce unbiased implicit variational inference (UIVI) that defines a flexible variational family. Like semi-implicit variational inference (SIVI), UIVI uses an implicit variational distribution $q_\theta(z)=\int q_\theta(z|\varepsilon)q(\varepsilon)d\varepsilon$ where $q_\theta(z|\varepsilon)$ is a reparameterizable distribution whose parameters can be outputs of some neural network $g$, i.e., $q_\theta(z|\varepsilon)=h(u;g(\varepsilon;\theta))$ with $u\sim q(u)$. \todo assumptions, entropy component of gradient requires MC estimation via reverse conditional
+Authors introduce unbiased implicit variational inference (UIVI) that defines a flexible variational family. Like semi-implicit variational inference (SIVI), UIVI uses an implicit variational distribution $q_\theta(z)=\int q_\theta(z|\varepsilon)q(\varepsilon)d\varepsilon$ where $q_\theta(z|\varepsilon)$ is a reparameterizable distribution whose parameters can be outputs of some neural network $g$, i.e., $q_\theta(z|\varepsilon)=h(u;g(\varepsilon;\theta))$ with $u\sim q(u)$. Under two assumptions on the conditional $q_\theta(z|\varepsilon)$, the ELBO can be approximated via Monte Carlo sampling. In particular, the entropy component of the ELBO can be rewritten as an expectation w.r.t. the reverse conditional $q_\theta(\varepsilon|z)$. Efficient approximation of this expectation w.r.t. the reverse conditional is done by reusing samples from approximating the main expectation to initialize a MCMC sampler.
+
+\item
+Questions: \todo
+\begin{enumerate}
+\item
+Can the gradient be pushed into the expectation? (Section~2.2)
+\end{enumerate}
 
 \end{itemize}
 
