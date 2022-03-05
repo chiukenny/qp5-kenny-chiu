@@ -25,6 +25,115 @@ Questions: \todo
 Can the gradient be pushed into the expectation? (Section~2.2)
 \end{enumerate}
 
+\item
+In \sivi, the variational distribution $q_\theta(z)$ is defined as
+\[
+q_\theta(z) = \int q_\theta(z|\eps)q(\eps)d\eps
+\]
+where $\eps\sim q(\eps)$.
+
+\item
+\uivi:
+\begin{itemize}
+\item
+Like \sivi, \uivi uses an implicit variational distribution $q_\theta(z)$ whose density cannot be evaluated but from which samples can be drawn. Unlike \sivi, \uivi directly maximizes the \elbo rather than a lower bound.
+\item
+The dependence of $q_\theta(z|\eps)$ on $\eps$ can be arbitrarily complex. \citet{Titsias:2019} take the parameters of a reparameterizable distribution (Assumption~1) as the output of a neural network with parameters $\theta$ that takes $\eps$ as input, i.e.,
+\[
+z = h(u; g_\theta(\eps)) = h_\theta(u;\eps)
+\]
+where $u\sim q(u)$ and $g_\theta$ is some neural network. It is also assumed that $\nabla_z\log q_\theta(z|\eps)$ can be evaluated (Assumption~2).
+\item
+The gradient of the \elbo is given by
+\begin{align*}
+\nabla_\theta\calL(\theta) &= \nabla_\theta\E_{q_\theta(z)}\left[\log p(x,z) - \log q_\theta(z)\right] \\
+&= \nabla_\theta\E_{q(\eps)q(u)}\left[\log p(x,z) - \log q_\theta(z)\big|_{z=h_\theta(u;\eps)}\right] \\
+&= \nabla_\theta\left(\E_{q(\eps)q(u)}\left[\log p(x,z)\big|_{z=h_\theta(u;\eps)}\right] - \E_{q(\eps)q(u)}\left[\log q_\theta(z)\big|_{z=h_\theta(u;\eps)}\right]\right) \\
+&= \E_{q(\eps)q(u)}\left[\nabla_z\log p(x,z)\big|_{z=h_\theta(u;\eps)}\nabla_\theta h_\theta(u;\eps)\right] - \E_{q(\eps)q(u)}\left[\nabla_z\log q_\theta(z)\big|_{z=h_\theta(u;\eps)}\nabla_\theta h_\theta(u;\eps)\right] \;.
+\end{align*}
+(\todo: where is $\E_{q_\theta(z)}\left[\nabla_\theta\log q_\theta(z)\right]=0$ applied?) (\todo: pushing gradient into expectation?) As $\nabla_z\log q_\theta(z)$ cannot be evaluated, this gradient is rewritten as an expectation using the log-deritative identity: $\nabla_x\log f(x) = \frac{1}{f(x)}\nabla_x f(x)$:
+\begin{align*}
+\nabla_z\log q_\theta(z) &= \frac{1}{q_\theta(z)}\nabla_zq_\theta(z) \\
+&= \frac{1}{q_\theta(z)}\nabla_z\int q_\theta(z|\eps)q(\eps)d\eps \\
+&= \frac{1}{q_\theta(z)}\int \nabla_z q_\theta(z|\eps)q(\eps)d\eps \\
+&= \frac{1}{q_\theta(z)}\int q_\theta(z|\eps)q(\eps)\nabla_z\log q_\theta(z|\eps)d\eps \\
+&= \int q_\theta(\eps|z)\nabla_z\log q_\theta(z|\eps)d\eps \\
+&= \E_{q_\theta(\eps|z)}\left[\nabla_z\log q_\theta(z|\eps)\right]\;.
+\end{align*}
+$\nabla_z\log q_\theta(z|\eps)$ can be evaluated by assumption.
+\end{itemize}
+\item
+\uivi estimates the gradient of the \elbo by drawing $S$ samples from $q(\eps)$ and $q(u)$ (in practice, $S=1$):
+\[
+\nabla_\theta\calL(\theta) \approx \frac{1}{S}\sum_{s=1}^S\left(\nabla_z\log p(x,z)\big|_{z=h_\theta(u_s,\eps_s)}\nabla_\theta h_\theta(u_s;\eps_s) - \E_{q_\theta(\eps|z)}\left[\nabla_z\log q_\theta(z|\eps)\right]\big|_{z=h_\theta(u_s;\eps_s)}\nabla_\theta h_\theta(u_s;\eps_s)\right) \;.
+\]
+To estimate the inner expectation, samples are drawn from the reverse conditional $q_\theta(\eps|z)\propto q_\theta(z|\eps)q(\eps)$ using \mcmc. Exploiting the fact that $(z_s,\eps_s)$ comes from the joint $q_\theta(z,\eps)$, \uivi initializes the \mcmc at $\eps_s$ so no burn-in is required. A number of iterations are run to break the dependency between $\eps_s$ and the $\eps_s'$ that is used to estimate the inner expectation.
+
+\end{itemize}
+
+\subsection{Analysis}
+
+\todo: analyze the (best-case) approximation of \uivi. Questions:
+\begin{enumerate}
+\item
+Approach? Probabilistic bound on KL as function of \elbo optimization iteration?
+\item
+How to deal with implicit mixing component? Do surrogate families simpler than neural networks help? What assumptions would be needed?
+\end{enumerate}
+
+
+\newpage
+
+
+\section{Other references}
+
+VI review:
+\begin{itemize}
+\item
+\href{https://s3.amazonaws.com/ieeecs.cdn.csdl.content/trans/tp/2019/08/08588399.pdf?AWSAccessKeyId=ASIA2Z6GPE73ITPNF4HV&Expires=1646432232&Signature=%2BwbeAhSyM%2FMqzaAhLaunhuq30BI%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEP7%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJGMEQCIGoE%2FVHY77X2Kpq0J47Ic29AHEKJ%2F%2FS0foSv98aaP%2F%2BxAiAYu9FImOV6wjyu7v9HkfGlfyytEvSd2wujoh7wIivaTyqdAghmEAAaDDc0MjkwODcwMDY2MiIMYEqAQr9DL2OWCGlbKvoB58nRjaBdUqwysmhAcnlM2JP60usEfHlgP0Bn2xGYd1kZJPiEKzmA%2F76Bo7YRZ2z%2FpCEaHPV7aFI6ikqSiJToz5QlGqPUQp5GF6qR5TSKEJ5oMTODfVyUt5xdcYOww012wn%2FyqAE3T9hRTF%2FyxhZeY6Q1xrj3Bzu8p0jP7NO30Xoje2Oct8JA6sOwhgFEL5rjtIpPoiiAywnSeWz8Ia8ra4tpCOPbG8T3SLq%2BFE4SS3BrviPuGWH0b0vr2EzBSZEoWFySA87d27hh99%2B%2BsLKLvcu4u3VGRUWb%2FpwIYAT88MBxL1RhCazyRj4eByB%2FsbVAhmGQ0bYAYYZT1TDqhYqRBjqbAcZHTiSLr48H4Ha2O6bVtVfH9%2B8e%2FmWAg2joY8DUAAvhdiGeqGLdPfgpNE0%2BpXfJI%2BKR8LeVrJvtfpYI3LV2RQn%2B3y2cnzIrosiNxE68tL4U%2BsW4uor4O6eZ8qvF%2Bvr7ncAy4rulMRlaqpgY%2FehIGk5UxsUPTr4zC%2BYNJXlKu28DlNal14YG5ugTN3VC5sgxL%2B%2Bq%2BEp8ibbwRzSf}{Advances in Variational Inference} (2019)
+\item
+\href{https://www.tandfonline.com/doi/full/10.1080/01621459.2017.1285773}{Variational Inference: A Review for Statisticians} (2017)
+\end{itemize}
+Possibly related VI approaches/of interest
+\begin{itemize}
+\item
+\href{https://proceedings.mlr.press/v80/yin18b/yin18b.pdf}{Semi-Implicit Variational Inference} (2018)
+
+\href{https://proceedings.mlr.press/v89/molchanov19a/molchanov19a.pdf}{Doubly Semi-Implicit Variational Inference} (2019)
+
+\href{https://openreview.net/pdf?id=HkxStk34Kr}{Structured Semi-Implicit Variational Inference} (2019)
+
+\href{https://arxiv.org/pdf/2101.06070.pdf}{Efficient Semi-Implicit Variational Inference
+} (2021)
+\item
+\href{https://proceedings.neurips.cc/paper/2019/file/5737c6ec2e0716f3d8a7a5c4e0de0d9a-Paper.pdf}{Importance Weighted Hierarchical
+Variational Inference} (2019)
+\item
+\href{https://arxiv.org/pdf/2002.09547.pdf}{Stochastic Normalizing Flows} (2020)
+\end{itemize}
+Theory/analysis
+\begin{itemize}
+\item
+\href{https://proceedings.mlr.press/v130/plummer21a/plummer21a.pdf}{Statistical Guarantees for Transformation Based Models with Applications to Implicit Variational Inference} (2021)
+
+\href{https://oaktrust.library.tamu.edu/bitstream/handle/1969.1/195122/PLUMMER-DISSERTATION-2021.pdf?sequence=1&isAllowed=y}{Statistical and Computational Properties of Variational Inference} (2021; thesis)
+\item
+\href{https://knowledge.uchicago.edu/record/2221?ln=en}{Theoretical Guarantees of Variational Inference and Its Applications} (2020; thesis)
+\item
+\href{https://tel.archives-ouvertes.fr/tel-02893465/document}{Contributions to the theoretical study of variational inference and robustness} (2020; thesis)
+\item
+\href{https://par.nsf.gov/servlets/purl/10180931}{On Statistical Optimality of Variational Bayes} (2018)
+
+\href{https://math.unm.edu/~skripka/workshop_high_dim/Anirban_Talks.pdf}{Statistical guarantees for variational Bayes} (2021; slides)
+\item
+\href{https://arxiv.org/pdf/2010.09540.pdf}{Statistical Guarantees and Algorithmic Convergence Issues of Variational Boosting} (2020)
+\item
+\href{https://proceedings.neurips.cc/paper/2020/file/7cac11e2f46ed46c339ec3d569853759-Paper.pdf}{Robust, Accurate Stochastic Optimization for Variational Inference} (2020) -- iterates as \mcmc?
+\item
+\href{https://arxiv.org/pdf/1908.04847.pdf}{Convergence Rates of Variational Inference in Sparse Deep Learning} (2019)
+
+\href{https://arxiv.org/pdf/1902.05068.pdf}{On the Convergence of Extended Variational Inference for Non-Gaussian Statistical Models} (2020)
+
 \end{itemize}
 
 
