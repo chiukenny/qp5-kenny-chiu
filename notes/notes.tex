@@ -47,11 +47,13 @@ where $u\sim q(u)$ and $g_\theta$ is some neural network. It is also assumed tha
 The gradient of the \elbo is given by
 \begin{align*}
 \nabla_\theta\calL(\theta) &= \nabla_\theta\E_{q_\theta(z)}\left[\log p(x,z) - \log q_\theta(z)\right] \\
-&= \nabla_\theta\E_{q(\eps)q(u)}\left[\log p(x,z) - \log q_\theta(z)\big|_{z=h_\theta(u;\eps)}\right] \\
-&= \nabla_\theta\left(\E_{q(\eps)q(u)}\left[\log p(x,z)\big|_{z=h_\theta(u;\eps)}\right] - \E_{q(\eps)q(u)}\left[\log q_\theta(z)\big|_{z=h_\theta(u;\eps)}\right]\right) \\
+&= \nabla_\theta\int\left(\log p(x,z) - \log q_\theta(z)\right)q_\theta(z)dz \\
+&= \int\nabla_\theta\left(\left(\log p(x,z) - \log q_\theta(z)\right)q_\theta(z)\right)dz \\
+&= \int\nabla_\theta\left(\left(\log p(x,z) - \log q_\theta(z)\right)\int q_\theta(z|\eps)q(\eps)d\eps\right)dz \\
+&= \int\int\nabla_\theta\left(\left(\log p(x,z) - \log q_\theta(z)\right)\big|_{z=h_\theta(u;\eps)}\right)q(u)q(\eps)d\eps du \\
 &= \E_{q(\eps)q(u)}\left[\nabla_z\log p(x,z)\big|_{z=h_\theta(u;\eps)}\nabla_\theta h_\theta(u;\eps)\right] - \E_{q(\eps)q(u)}\left[\nabla_z\log q_\theta(z)\big|_{z=h_\theta(u;\eps)}\nabla_\theta h_\theta(u;\eps)\right] \;.
 \end{align*}
-(\todo: where is $\E_{q_\theta(z)}\left[\nabla_\theta\log q_\theta(z)\right]=0$ applied?) (\todo: pushing gradient into expectation?) As $\nabla_z\log q_\theta(z)$ cannot be evaluated, this gradient is rewritten as an expectation using the log-deritative identity: $\nabla_x\log f(x) = \frac{1}{f(x)}\nabla_x f(x)$:
+(\todo: where is $\E_{q_\theta(z)}\left[\nabla_\theta\log q_\theta(z)\right]=0$ applied?) (Gradient can be pushed into expectation using DCT.) As $\nabla_z\log q_\theta(z)$ cannot be evaluated, this gradient is rewritten as an expectation using the log-deritative identity: $\nabla_x\log f(x) = \frac{1}{f(x)}\nabla_x f(x)$:
 \begin{align*}
 \nabla_z\log q_\theta(z) &= \frac{1}{q_\theta(z)}\nabla_zq_\theta(z) \\
 &= \frac{1}{q_\theta(z)}\nabla_z\int q_\theta(z|\eps)q(\eps)d\eps \\
@@ -85,6 +87,28 @@ How to deal with implicit mixing component? Do surrogate families simpler than n
 \newpage
 
 
+\section{Semi-implicit variational inference}
+
+Based on \citet{Yin:2018}.
+\\
+
+\sivi is addresses the issues of classical VI attributed to the requirement of a conditionally conjugate variational family by relaxing this requirement to allow for implicit distributional families from which samples can be drawn. This implicit family consists of hierarchical distributions with a mixing parameter. While the distribution conditioned on the mixing parameter is required to be analytical and reparameterizable, the mixing distribution can be arbitrarily complex. The use of such a variational family also addresses the problems of conventional mean-field families as dependencies between the latent variables can be introduced through the mixing distribution.
+\\
+
+The objective in \sivi is a surrogate \elbo that is only exact asymptotically and otherwise a lower bound of the \elbo. Like in black box VI, the gradients are rewritten as expectations and estimated via Monte Carlo samples.
+
+
+\section{Hierarchical variational inference}
+
+Based on \citet{Ranganath:2016}.
+\\
+
+\todo
+
+
+\newpage
+
+
 \section{Other references}
 
 VI review:
@@ -93,6 +117,8 @@ VI review:
 \href{https://s3.amazonaws.com/ieeecs.cdn.csdl.content/trans/tp/2019/08/08588399.pdf?AWSAccessKeyId=ASIA2Z6GPE73ITPNF4HV&Expires=1646432232&Signature=%2BwbeAhSyM%2FMqzaAhLaunhuq30BI%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEP7%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJGMEQCIGoE%2FVHY77X2Kpq0J47Ic29AHEKJ%2F%2FS0foSv98aaP%2F%2BxAiAYu9FImOV6wjyu7v9HkfGlfyytEvSd2wujoh7wIivaTyqdAghmEAAaDDc0MjkwODcwMDY2MiIMYEqAQr9DL2OWCGlbKvoB58nRjaBdUqwysmhAcnlM2JP60usEfHlgP0Bn2xGYd1kZJPiEKzmA%2F76Bo7YRZ2z%2FpCEaHPV7aFI6ikqSiJToz5QlGqPUQp5GF6qR5TSKEJ5oMTODfVyUt5xdcYOww012wn%2FyqAE3T9hRTF%2FyxhZeY6Q1xrj3Bzu8p0jP7NO30Xoje2Oct8JA6sOwhgFEL5rjtIpPoiiAywnSeWz8Ia8ra4tpCOPbG8T3SLq%2BFE4SS3BrviPuGWH0b0vr2EzBSZEoWFySA87d27hh99%2B%2BsLKLvcu4u3VGRUWb%2FpwIYAT88MBxL1RhCazyRj4eByB%2FsbVAhmGQ0bYAYYZT1TDqhYqRBjqbAcZHTiSLr48H4Ha2O6bVtVfH9%2B8e%2FmWAg2joY8DUAAvhdiGeqGLdPfgpNE0%2BpXfJI%2BKR8LeVrJvtfpYI3LV2RQn%2B3y2cnzIrosiNxE68tL4U%2BsW4uor4O6eZ8qvF%2Bvr7ncAy4rulMRlaqpgY%2FehIGk5UxsUPTr4zC%2BYNJXlKu28DlNal14YG5ugTN3VC5sgxL%2B%2Bq%2BEp8ibbwRzSf}{Advances in Variational Inference} (2019)
 \item
 \href{https://www.tandfonline.com/doi/full/10.1080/01621459.2017.1285773}{Variational Inference: A Review for Statisticians} (2017)
+\item
+\href{https://arxiv.org/pdf/1401.0118.pdf}{Black Box Variational Inference} (2013): dominated convergence theorem used to push gradient into expectation
 \end{itemize}
 Possibly related VI approaches/of interest
 \begin{itemize}
