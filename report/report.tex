@@ -6,26 +6,36 @@
 \author{Kenny Chiu}
 \date{\today}
 
-\bibliography{qp.bib}
-
 \begin{document}
 
 \maketitle
+
+
+\newpage
 
 
 \section{Critical analysis}
 
 \subsection{Introduction}
 
-\todo context and brief summary
+\todo \citet{Titsias:2019} introduce Unbiased Implicit Variational Inference (\uivi) as a variational inference method that allows for a flexible variational family and that addresses the issues of the methods that it is built on. In this analysis, we summarize the work of \citet{Titsias:2019} in the context of the literature and critically examine the strengths and limitations of \uivi. This analysis is organized as follows: Section~\ref{an:literature} introduces the problem context and previous work; Section~\ref{an:uivi} describes how \uivi works and how it addresses the limitations of previous methods, and discusses its own limitations.
 
-\subsection{Previous work and limitations}
+\subsection{Context and previous work} \label{an:literature}
 
-\todo previous work and their limitations
+Variational inference (\vi) \citep{Jordan:1999} is a Bayesian inference method that formulates the problem of finding the posterior distribution $p(\bfz|\bfx)$ of latent variables $\bfz$ given data $\bfx$ as an optimization problem. \vi posits a variational family $\calQ=\{q_\theta\}$ of distributions indexed by variational parameters $\theta$ and aims to approximate the posterior distribution by some simpler variational distribution $q_\theta(\bfz)\in\calQ$. In standard \vi, the selected distribution $q_\theta$ is the one that minimizes its Kullback-Leibler (\kl) divergence with $p(\bfz|\bfx)$ or equivalently, the one that maximizes the evidence lower bound (\elbo) denoted as
+\[
+\calL(\theta) = \E_{q_\theta(\bfz)}\left[\log p(\bfx,\bfz) - \log q_\theta(\bfz)\right] \;.
+\]
+To maximize the \elbo, standard \vi places strong restrictions on the choice of the model and the variational family in order to allow the use of a coordinate ascent algorithm. These restrictions include (1) a mean-field assumption where the latent variables are marginally independent and the variational distribution factorizes as $q_\theta(\bfz)=\prod_{i=1}^dq_{\theta_i}(\bfz_i)$ and (2) the model has conjugate conditionals where $p(\bfz_i)$ and $p(\bfz_i|\bfx,\bfz_{\neg i})$ are from the same distribution family.
+\\
 
-\subsection{Current work}
+\bbvi
 
-\todo how \uivi works, main advantages, other contributions of paper, limitations
+\todo black box vi and hierarchical methods + limitations
+
+\subsection{Current work} \label{an:uivi}
+
+\todo how \uivi works, main advantages, other contributions of paper (empirical vs sivi), limitations
 
 
 \newpage
@@ -43,5 +53,11 @@
 
 \subsection{Introduction}
 
+
+\newpage
+
+
+\bibliographystyle{plainnat}
+\bibliography{qp}
 
 \end{document}
