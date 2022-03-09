@@ -95,7 +95,16 @@ Based on \citet{Yin:2018}.
 \sivi is addresses the issues of classical VI attributed to the requirement of a conditionally conjugate variational family by relaxing this requirement to allow for implicit distributional families from which samples can be drawn. This implicit family consists of hierarchical distributions with a mixing parameter. While the distribution conditioned on the mixing parameter is required to be analytical and reparameterizable, the mixing distribution can be arbitrarily complex. The use of such a variational family also addresses the problems of conventional mean-field families as dependencies between the latent variables can be introduced through the mixing distribution.
 \\
 
-The objective in \sivi is a surrogate \elbo that is only exact asymptotically and otherwise a lower bound of the \elbo. Like in black box VI, the gradients are rewritten as expectations and estimated via Monte Carlo samples.
+The objective in \sivi is a surrogate \elbo that is only exact asymptotically and otherwise a lower bound of the \elbo~\citep{Molchanov:2019}. Like in black box VI, the gradients are rewritten as expectations and estimated via Monte Carlo samples.
+\\
+
+\citet{Molchanov:2019} extends \sivi to doubly \sivi for variational inference and variational learning in which both the variational posterior and the prior are semi-implicit distributions. They also show that the \sivi objective is a lower bound of the \elbo.
+\\
+
+\citet{Molchanova:2019} and \citet{Moens:2021} comment that \sivi and \uivi struggle in high-dimensional regimes. \mcmc methods also have high variance \citep{Moens:2021}.
+\\
+
+\citet{Moens:2021} introduce compositional implicit variational inference (CI-VI), which rewrites the \sivi \elbo as a compositional nested form $\E_\nu\left[f_\nu\left(\E_\omega\left[g_\omega(\theta)\right]\right)\right]$. The gradient involves estimated the nested expectations, for which a simple Monte-Carlo estimator would be biased. CI-VI uses an extrapolation-smoothing scheme for which the bias converges to zero with iterations. In practice, the gradient involves matrix-vector products that are expensive but can be approximated via sketching techniques. Under certain assumptions, convergence of the CI-VI algorithm is proved in terms of the number of oracle calls needed to convergence (\todo).
 
 
 \section{Hierarchical variational inference}
@@ -127,10 +136,12 @@ Possibly related VI approaches/of interest
 
 \href{https://proceedings.mlr.press/v89/molchanov19a/molchanov19a.pdf}{Doubly Semi-Implicit Variational Inference} (2019)
 
-\href{https://openreview.net/pdf?id=HkxStk34Kr}{Structured Semi-Implicit Variational Inference} (2019)
+\href{https://openreview.net/pdf?id=HkxStk34Kr}{Structured Semi-Implicit Variational Inference} (2019): mentions that previous methods scale exponentially with dimension of the latent variables. Imposes that the high-dimensional semi-implicit distribution factorizes into a product of low-dimensional conditional semi-implicit distributions and shows that the resulting entropy bound is tighter than that of \sivi's and consequently a tighter \elbo objective.
 
 \href{https://arxiv.org/pdf/2101.06070.pdf}{Efficient Semi-Implicit Variational Inference
 } (2021)
+\item
+\href{https://arxiv.org/pdf/1702.08235.pdf}{Variational Inference using Implicit Distributions} (2017): implicit with density ratio estimation?
 \item
 \href{https://proceedings.neurips.cc/paper/2019/file/5737c6ec2e0716f3d8a7a5c4e0de0d9a-Paper.pdf}{Importance Weighted Hierarchical
 Variational Inference} (2019)

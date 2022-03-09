@@ -22,14 +22,16 @@
 
 \subsection{Context and previous work} \label{an:literature}
 
-Variational inference (\vi) \citep{Jordan:1999} is a Bayesian inference method that formulates the problem of finding the posterior distribution $p(\bfz|\bfx)$ of latent variables $\bfz$ given data $\bfx$ as an optimization problem. \vi posits a variational family $\calQ=\{q_\theta\}$ of distributions indexed by variational parameters $\theta$ and aims to approximate the posterior distribution by some simpler variational distribution $q_\theta(\bfz)\in\calQ$. In standard \vi, the selected distribution $q_\theta$ is the one that minimizes its Kullback-Leibler (\kl) divergence with $p(\bfz|\bfx)$ or equivalently, the one that maximizes the evidence lower bound (\elbo) denoted as
+Variational inference (\vi) \citep{Jordan:1999} is a Bayesian inference method that formulates the problem of finding the posterior distribution $p(\bfz|\bfx)$ of latent variables $\bfz$ given data $\bfx$ as an optimization problem. \vi posits a variational family $\calQ=\{q_\theta\}$ of distributions indexed by variational parameters $\theta$ and aims to approximate the posterior distribution by some simpler variational distribution $q_\theta(\bfz)\in\calQ$. In standard \vi, the selected distribution $q_\theta$ is the one that minimizes the Kullback-Leibler (\kl) divergence of $q_\theta$ and $p(\bfz|\bfx)$ or equivalently, the one that maximizes the evidence lower bound (\elbo) denoted as
 \[
 \calL(\theta) = \E_{q_\theta(\bfz)}\left[\log p(\bfx,\bfz) - \log q_\theta(\bfz)\right] \;.
 \]
 To maximize the \elbo, standard \vi places strong restrictions on the choice of the model and the variational family in order to allow the use of a coordinate ascent algorithm. These restrictions include (1) a mean-field assumption where the latent variables are marginally independent and the variational distribution factorizes as $q_\theta(\bfz)=\prod_{i=1}^dq_{\theta_i}(\bfz_i)$ and (2) the model has conjugate conditionals where $p(\bfz_i)$ and $p(\bfz_i|\bfx,\bfz_{\neg i})$ are from the same distribution family.
 \\
 
-\bbvi
+A major development from standard \vi was black box \vi (\bbvi) \citep{Ranganath:2014} which relaxed the restrictive assumptions by optimizing the \elbo through a different approach. By rewriting the \elbo gradient in terms of an expectation, gradients could be estimated via Monte Carlo approaches. Exchanging the above assumptions for the different assumption that one can sample from the variational distribution $q_\theta(\bfz)$, this expanded the possibilities for the choice of the variational family. In particular, hierarchical variational families \citep{Ranganath:2016} of the form $q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q_\theta(\bfeps)d\bfeps$ were proposed with their main strength being the ability to model marginal dependencies between latent variables (which the mean-field family could not) through the mixing distribution $q_\theta(\bfeps)$. 
+
+\todo \sivi
 
 \todo black box vi and hierarchical methods + limitations
 
