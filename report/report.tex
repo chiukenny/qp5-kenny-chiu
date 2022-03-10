@@ -29,15 +29,53 @@ Variational inference (\vi) \citep{Jordan:1999} is a Bayesian inference method t
 To maximize the \elbo, standard \vi places strong restrictions on the choice of the model and the variational family in order to allow the use of a coordinate ascent algorithm. These restrictions include (1) a mean-field assumption where the latent variables are marginally independent and the variational distribution factorizes as $q_\theta(\bfz)=\prod_{i=1}^dq_{\theta_i}(\bfz_i)$ and (2) the model has conjugate conditionals where $p(\bfz_i)$ and $p(\bfz_i|\bfx,\bfz_{\neg i})$ are from the same distribution family.
 \\
 
-A major development from standard \vi was black box \vi (\bbvi) \citep{Ranganath:2014} which relaxed the restrictive assumptions by optimizing the \elbo through a different approach. By rewriting the \elbo gradient in terms of an expectation, gradients could be estimated via Monte Carlo approaches. Exchanging the above assumptions for the different assumption that one can sample from the variational distribution $q_\theta(\bfz)$, this expanded the possibilities for the choice of the variational family. In particular, hierarchical variational families \citep{Ranganath:2016} of the form $q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q_\theta(\bfeps)d\bfeps$ were proposed with their main strength being the ability to model marginal dependencies between latent variables (which the mean-field family could not) through the mixing distribution $q_\theta(\bfeps)$. 
+A major development from standard \vi was black box \vi (\bbvi) \citep{Ranganath:2014} which relaxed the restrictive assumptions by optimizing the \elbo through a different approach. By rewriting the \elbo gradient in terms of an expectation, gradients could be estimated via Monte Carlo approaches. Exchanging the above assumptions for the different assumption that one can sample from the variational distribution $q_\theta(\bfz)$ expanded the possibilities for the choice of the variational family. In particular, hierarchical variational families \citep{Ranganath:2016} of the form $q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q_\theta(\bfeps)d\bfeps$ were proposed with their main strength being the ability to model marginal dependencies between latent variables (which the mean-field family could not) through the mixing distribution $q_\theta(\bfeps)$.
+\\
 
-\todo \sivi
+Further pushing the assumption that one only needs to be able to sample from the variational distribution, another development in hierarchical variational models was the incorporation of implicit distributions~\citep{Mohamed:2016} in various forms. Without needing to evaluate the density of the implicit distribution, flexible models such as normalizing flows~\citep{Rezende:2015} and deep neural networks could be leveraged to expand the modeling capacity of the variational family. Using implicit distributions came at a cost of making the log density ratio in the \elbo intractable. Density ratio estimation is one approach for tackling this problem~\citep[e.g.,][]{Mohamed:2016,Huszar:2017}, but it is known to struggle in high-dimensional regimes~\citep{Sugiyama:2012}.
+\\
 
-\todo black box vi and hierarchical methods + limitations
+The method that predates \uivi and that was proposed to address the challenges of using implicit distributions in hierarchical variational models is semi-implicit \vi (\sivi)~\citep{Yin:2018}. \sivi requires the variational conditional $q_\theta(\bfz|\bfeps)=q(\bfz|\bfeps)$ to be reparameterizable~\citep{Kingma:2013} and explicit and the mixing distribution $q_\theta(\bfeps)$ also to be reparameterizable but possibly implicit. \sivi then avoids the density ratio estimation problem by instead optimizing a lower bound for the \elbo that is only exact as the number of samples in each iteration goes to infinity~\citep{Yin:2018,Molchanov:2019}.
+
 
 \subsection{Current work} \label{an:uivi}
 
-\todo how \uivi works, main advantages, other contributions of paper (empirical vs sivi), limitations
+\citet{Titsias:2019} propose \uivi as an alternative to \sivi that directly maximizes the \elbo as an objective rather than a surrogate lower bound. The idea is that doing so leads to a tighter \elbo bound and therefore ideally faster convergence to the solution.
+
+\subsubsection{Unbiased implicit variational inference}
+
+Like \sivi, \uivi starts with a hierarchical variational model setup where the variational distribution is
+\[
+q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q(\bfeps)d\bfeps \;.
+\]
+\uivi requires the variational conditional $q_\theta(\bfz|\bfeps)$ to be reparameterizable, i.e., that any sample $\bfz\sim q_\theta(\bfz|\bfeps)$ can be rewritten as
+\[
+\bfz = h_\theta(\bfu;\bfeps) := h_{\bfpsi=g_\theta(\bfeps)}(\bfu) 
+\]
+where $h_{\bfpsi}$ is some function with parameters $\bfpsi$ that are the output of some function $g_\theta$ with variational parameters $\theta$ and input $\bfeps$. Noise variables $\bfu\sim q(\bfu)$ and $\bfeps\sim q(\bfeps)$ are sampled from auxiliary distributions that are fixed. \uivi also requires that $q_\theta(\bfz|\bfeps)$ and its log-gradient $\nabla_\bfz\log q_\theta(\bfz|\bfeps)$ can be evaluated, which holds for many reparameterizable distributions.
+\\
+
+Under these assumptions, the \elbo can be rewritten as an expectation with respect to the noise distributions $q(\bfu)$ and $q(\bfeps)$, and its gradient can be decomposed into two terms given by
+\[
+\nabla_\theta \calL(\theta) = \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log q(\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] \;.
+\]
+The first expectation can be estimated using samples from $q(\bf\eps)$ and $q(\bfu)$ while the second expectation is more difficult as $\nabla_z\log q(\bfz)$ may not be evaluated if $q(\bfz)$ is implicit. The first key trick in \uivi is to rewrite the gradient as an expectation given by
+\[
+\nabla_z\log q(\bfz) = \E_{q_\theta(\bfeps|\bfz)}\left[\nabla_\bfz\log q_\theta(\bfz|\bfeps)\right]
+\]
+which then allows for Monte Carlo estimation using samples from $q_\theta(\bfeps|\bfz)\propto q_\theta(\bfz|\bfeps)q(\bfeps)$. The second key trick in \uivi is to reuse a sample $(\bfz_i,\bfeps_i)$ from estimating the outer expectation as an initial point in a Markov chain Monte Carlo (\mcmc) sampler. As the initial point is a sample from the same joint distribution $q_\theta(\bfz,\bfeps)$, no burn-in is necessary and the only purpose of the \mcmc is to break the dependence between samples used to estimate the inner and outer expectations. Thus, the gradient of the \elbo is estimated by
+\[
+\widehat{\nabla}_\theta\calL(\theta) = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} \right)\nabla_\theta h_\theta(\bfu_i;\bfeps_i)
+\]
+where $\bfeps_i\sim q(\bfeps)$, $\bfu_i\sim q(\bfu)$, $\bfeps_j'\sim q_\theta(\bfeps|\bfz)$ and with $n=1$ said to be used in practice.
+
+\subsubsection{Other contributions}
+
+\todo empirical vs \sivi
+
+\subsubsection{Limitations}
+
+\todo dimensionality? variance of \mcmc?
 
 
 \newpage

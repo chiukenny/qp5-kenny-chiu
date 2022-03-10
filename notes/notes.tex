@@ -81,7 +81,31 @@ To estimate the inner expectation, samples are drawn from the reverse conditiona
 Approach? Probabilistic bound on KL as function of \elbo optimization iteration?
 \item
 How to deal with implicit mixing component? Do surrogate families simpler than neural networks help? What assumptions would be needed?
+\item
+Posterior contraction in terms of limiting data?
 \end{enumerate}
+
+\begin{itemize}
+
+\item
+Can we say something about \elbo maximizer $\hat\theta$, e.g.,
+\begin{itemize}
+\item
+KL upper bound
+\begin{align*}
+\text{KL}(q_{\hat\theta}(z)\|p(z|x)) &= -\E_{q_{\hat\theta}(z)}\left[\log\frac{p(z|x)}{q_{\hat\theta}(z)}\right] \\
+&= \E_{q_{\hat\theta}(z)}\left[\log\frac{q_{\hat\theta}(z)}{p(z|x)}\right] \\
+&= \E_{q_{\hat\theta}(z)}\left[\log\frac{\E_{q(\eps)}\left[q_{\hat\theta}(z|\eps)\right]}{p(z|x)}\right]
+\end{align*}
+\item
+\elbo lower bound
+\begin{align*}
+\calL(\hat\theta) &= \E_{q_{\hat\theta}(z)}\left[\log p(x,z) - \log q_{\hat\theta}(z)\right] \\
+&= \E_{q_{\hat\theta}(z)}\left[\log p(x,z) - \log \E_{q(\eps)}\left[q_{\hat\theta}(z|\eps)\right]\right]
+\end{align*}
+\end{itemize}
+
+\end{itemize}
 
 
 \newpage
