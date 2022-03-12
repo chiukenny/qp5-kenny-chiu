@@ -103,7 +103,66 @@ KL upper bound
 \calL(\hat\theta) &= \E_{q_{\hat\theta}(z)}\left[\log p(x,z) - \log q_{\hat\theta}(z)\right] \\
 &= \E_{q_{\hat\theta}(z)}\left[\log p(x,z) - \log \E_{q(\eps)}\left[q_{\hat\theta}(z|\eps)\right]\right]
 \end{align*}
+\item
+\href{https://stats.stackexchange.com/questions/308838/marginal-likelihood-derivation-for-normal-likelihood-and-prior}{Simple case}:
+
+$X\sim N(Z,\sigma^2)$, prior $Z\sim N(\mu_0,\sigma^2_0)$, posterior $Z|X_{1:n}\sim N\left(\frac{\mu_0\sigma_0^{-2}+n\bar{X}\sigma^{-2}}{\sigma_0^{-2}+n\sigma^{-2}}, \sigma_1^2=\frac{1}{\sigma_0^{-2}+n\sigma^{-2}}\right)$.
+
+Gaussian $q_\theta(z|\varepsilon)$:
+\begin{align*}
+\varepsilon &\sim N(0,1) \\
+u &\sim N(0,1) \\
+z &= h_\theta(u;\varepsilon) = \mu_\theta(\varepsilon) + \sigma_1u \\
+\mu_\theta(\varepsilon) &= \theta + \varepsilon \\
+z|\varepsilon &\sim N(\mu_\theta(\varepsilon), \sigma_1^2) = N(\theta + \varepsilon, \sigma_1^2) \\
+z|\varepsilon,u &= \theta + \varepsilon + \sigma_1u \\
+z &\sim N(\theta, \sigma_1^2+1) \\
+z &\sim N\left(\E\left[\mu_\theta(\varepsilon)\right], \sigma_1^2+\mathrm{Var}\left(\mu_\theta(\varepsilon)\right)\right)
+\end{align*}
+This says that for this normal-normal model, the true posterior is not in our variational family, and no function $\mu_\theta(\varepsilon)$ is able to change that unless $\mu_\theta(\varepsilon)$ is constant. \todo: problem is that $\sigma$ in $h_\theta$ is misspecified. Learning both fixes issue?
+\begin{align*}
+z &= \mu_\theta(\varepsilon_1) + \sigma_\theta(\varepsilon_2)u \\
+&\sim N\left(\E\left[\mu_\theta(\varepsilon_1)\right], \mathrm{Var}\left(\mu_\theta(\varepsilon_1)\right) + \mathrm{Var}\left(\sigma_\theta(\varepsilon_2)\right)\right)
+\end{align*}
+if learning independently. \todo Do Gaussian process/convolution ideas \citep{Plummer:2021} apply when reparameterized distribution is additive?
+
+\item
+Differential entropy not invariant under change of variables.
+
 \end{itemize}
+
+\subsubsection{Scratch notes}
+
+$\hat{\theta}=\frac{\mu_0\sigma_0^{-2}+n\bar{X}\sigma^{-2}}{\sigma_0^{-2}+n\sigma^{-2}}$:
+\begin{align*}
+\mathrm{KL}(q_\theta(z)\|p(z|x)) &= - \int q_\theta(z)\log\frac{p(z|x)}{q_\theta(z)}dz \\
+&= - \int q_\theta(z)\log p(z|x) + \int q_\theta(z)\log q_\theta(z)dz 
+\end{align*}
+\begin{align*}
+u &\sim N(0,1) \\
+z &= h_\theta(u;\varepsilon) = \mu_\theta(\varepsilon) + \sigma_1u \\
+\mu_\theta(\varepsilon) &= \theta + \varepsilon \\
+u &= h_\theta^{-1}(z;\varepsilon) = \sigma_1^{-1}(z-\mu_\theta(\varepsilon)) \\
+\nabla_z h_\theta^{-1}(z;\varepsilon) &= \sigma_1^{-1} \\
+q_\theta(z|\varepsilon) &= q_u(h_\theta^{-1}(z;\varepsilon))\sigma_1^{-1} \\
+q_\theta(z) &= \int q_\theta(z|\varepsilon)q(\varepsilon)d\varepsilon \\
+&= \int \sigma_1^{-1}q_u\left(\sigma_1^{-1}\left(z-\mu_\theta(\varepsilon)\right)\right)q(\varepsilon)d\varepsilon \\
+&= \int \sigma_1^{-1}q_u\left(\sigma_1^{-1}\left(z-\theta-\varepsilon\right)\right)q(\varepsilon)d\varepsilon \\
+&= \int \frac{1}{\sqrt{2\pi\sigma_1^2}}\exp\left(-\frac{1}{2}\left(\sigma_1^{-2}(z-\theta-\varepsilon)^2\right)\right)q(\varepsilon)d\varepsilon \\
+&= \int \frac{1}{\sqrt{2\pi\sigma_1^2}}\exp\left(-\frac{1}{2\sigma_1^2}\left((z-\theta)^2-2(z-\theta)\varepsilon+\varepsilon^2\right)\right)q(\varepsilon)d\varepsilon \\
+&= \frac{1}{\sqrt{2\pi\sigma_1^2}}\exp\left(-\frac{1}{2\sigma_1^2}(z-\theta)^2\right) \int \exp\left(-\frac{1}{2\sigma_1^2}\left(-2(z-\theta)\varepsilon+\varepsilon^2\right)\right)q(\varepsilon)d\varepsilon \\
+&= \frac{1}{\sqrt{2\pi\sigma_1^2}}\exp\left(-\frac{1}{2\sigma_1^2}(z-\theta)^2\right) \int \frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2\sigma_1^2}\left(-2(z-\theta)\varepsilon+\varepsilon^2\right)-\frac{1}{2}\varepsilon^2\right)d\varepsilon
+\end{align*}
+Posterior exact when ?
+
+\item
+If $h_\theta$ monotonic, invertible:
+\begin{align*}
+z &= h_\theta(u;\bfeps) \\
+q_\theta(z|\bfeps) &= q_u\left(h_\theta^{-1}(z;\bfeps)\right)\left|\nabla_zh_\theta^{-1}(z;\bfeps)\right| \\
+q_\theta(z) &= \int q_u\left(h_\theta^{-1}(z;\bfeps)\right)\left|\nabla_zh_\theta^{-1}(z;\bfeps)\right| q(\bfeps)d\bfeps
+\end{align*}
+\todo: normalizing flow literature? Restrict $h_\theta$ to be independent of $\bfeps$ (e.g., linear flows)?
 
 \end{itemize}
 
@@ -144,7 +203,20 @@ Predating \sivi and \uivi, \hvm first(?) addressed the restricted variational fa
 
 \section{Theoretical guarantees for implicit VI}
 
-\todo \citet{Plummer:2021}.
+\citet{Plummer:2021}.
+\\
+
+\todo: Considers non-linear latent variable model
+\begin{align*}
+z &= \mu(\varepsilon) + u \\
+u &\sim N(0,\sigma^2) \\
+\varepsilon &\sim U(0,1) \\
+\mu &\sim \Pi_\mu \\
+\sigma &\sim \Pi_\sigma
+\end{align*}
+where $\Pi_\mu$ and $\Pi_\sigma$ are priors. $\Pi_\mu$ is taken as Gaussian process?
+
+For simple normal-normal model, KL divergence for true normal model and true posterior converges weakly to a $\chi_1^2$ and not to 0.
 
 
 \newpage
@@ -178,6 +250,8 @@ Possibly related VI approaches/of interest
 \href{https://proceedings.neurips.cc/paper/2019/file/5737c6ec2e0716f3d8a7a5c4e0de0d9a-Paper.pdf}{Importance Weighted Hierarchical
 Variational Inference} (2019)
 \item
+\href{https://jmlr.org/papers/volume22/19-1028/19-1028.pdf}{Normalizing Flows for Probabilistic Modeling and Inference} (2021)
+
 \href{https://arxiv.org/pdf/2002.09547.pdf}{Stochastic Normalizing Flows} (2020)
 \end{itemize}
 Theory/analysis
