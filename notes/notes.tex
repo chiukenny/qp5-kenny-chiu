@@ -19,13 +19,6 @@ Based on \citet{Titsias:2019}.
 Authors introduce unbiased implicit variational inference (UIVI) that defines a flexible variational family. Like semi-implicit variational inference (SIVI), UIVI uses an implicit variational distribution $q_\theta(z)=\int q_\theta(z|\varepsilon)q(\varepsilon)d\varepsilon$ where $q_\theta(z|\varepsilon)$ is a reparameterizable distribution whose parameters can be outputs of some neural network $g$, i.e., $q_\theta(z|\varepsilon)=h(u;g(\varepsilon;\theta))$ with $u\sim q(u)$. Under two assumptions on the conditional $q_\theta(z|\varepsilon)$, the ELBO can be approximated via Monte Carlo sampling. In particular, the entropy component of the ELBO can be rewritten as an expectation w.r.t. the reverse conditional $q_\theta(\varepsilon|z)$. Efficient approximation of this expectation w.r.t. the reverse conditional is done by reusing samples from approximating the main expectation to initialize a MCMC sampler.
 
 \item
-Questions: \todo
-\begin{enumerate}
-\item
-Can the gradient be pushed into the expectation? (Section~2.2)
-\end{enumerate}
-
-\item
 In \sivi, the variational distribution $q_\theta(z)$ is defined as
 \[
 q_\theta(z) = \int q_\theta(z|\eps)q(\eps)d\eps
@@ -53,7 +46,16 @@ The gradient of the \elbo is given by
 &= \int\int\nabla_\theta\left(\left(\log p(x,z) - \log q_\theta(z)\right)\big|_{z=h_\theta(u;\eps)}\right)q(u)q(\eps)d\eps du \\
 &= \E_{q(\eps)q(u)}\left[\nabla_z\log p(x,z)\big|_{z=h_\theta(u;\eps)}\nabla_\theta h_\theta(u;\eps)\right] - \E_{q(\eps)q(u)}\left[\nabla_z\log q_\theta(z)\big|_{z=h_\theta(u;\eps)}\nabla_\theta h_\theta(u;\eps)\right] \;.
 \end{align*}
-(\todo: where is $\E_{q_\theta(z)}\left[\nabla_\theta\log q_\theta(z)\right]=0$ applied?) (Gradient can be pushed into expectation using DCT.) As $\nabla_z\log q_\theta(z)$ cannot be evaluated, this gradient is rewritten as an expectation using the log-deritative identity: $\nabla_x\log f(x) = \frac{1}{f(x)}\nabla_x f(x)$:
+(Note that is $\E_{q_\theta(z)}\left[\nabla_\theta\log q_\theta(z)\right]=0$ is applied as below; see \href{https://bayesgroup.github.io/bmml_sem/2018/Molchanov_Implicit%20Models_2018_2.pdf}{Slide 24}) (Gradient can be pushed into expectation using DCT.)
+
+\begin{align*}
+\nabla_\theta\E_{q_\theta(z)}\left[\log q_\theta(z)\right] &= \nabla_\theta\E_{q(\eps)}\left[\log q_\theta(f_\theta(\eps))\right] \\
+&= \E_{q(\eps)}\left[\nabla_\theta \log q_\theta(z)\big|_{z=f_\theta(\eps)}\right] + \E_{q(\eps)}\left[\nabla_z\log q_\theta(z)\big|_{z=f_\theta(\eps)}\nabla_\theta f_\theta(\eps)\right] \\
+&= \E_{q_\theta(z)}\left[\nabla_\theta \log q_\theta(z)\right] + \E_{q(\eps)}\left[\nabla_z\log q_\theta(z)\big|_{z=f_\theta(\eps)}\nabla_\theta f_\theta(\eps)\right] \\
+&= \E_{q(\eps)}\left[\nabla_z\log q_\theta(z)\big|_{z=f_\theta(\eps)}\nabla_\theta f_\theta(\eps)\right]
+\end{align*}
+
+As $\nabla_z\log q_\theta(z)$ cannot be evaluated, this gradient is rewritten as an expectation using the log-deritative identity: $\nabla_x\log f(x) = \frac{1}{f(x)}\nabla_x f(x)$:
 \begin{align*}
 \nabla_z\log q_\theta(z) &= \frac{1}{q_\theta(z)}\nabla_zq_\theta(z) \\
 &= \frac{1}{q_\theta(z)}\nabla_z\int q_\theta(z|\eps)q(\eps)d\eps \\
@@ -130,6 +132,34 @@ if learning independently. \todo Do Gaussian process/convolution ideas \citep{Pl
 Differential entropy not invariant under change of variables.
 
 \end{itemize}
+\end{itemize}
+
+Approaches:
+\begin{itemize}
+
+\item
+Question mainly boils down to how expressive is the implicit distributional family?
+
+\item
+KL between true posterior and variational distribution:
+\begin{itemize}
+\item
+Analytic approach: normal-normal example below shows simple case where true posterior is in variational family and where it is not.
+\item
+More complicated attempt: come up with analytic $q_\theta(z)$ for more complex mixing (e.g., normalizing flow) but likely not generalizable as in general is intractable. Intention: for any well-behaved target and base, there exists a diffeomorphism that can turn the base into the target.
+\item
+\citet{Plummer:2021} provides probabilistic bounds on KL between true posterior and variational distribution given by a particular implicit model (non-linear latent variable model with a Gaussian process prior), and maybe posterior contraction to true density? Unclear how generalizable results are based on current understanding.
+\end{itemize}
+
+\item
+Posterior contraction/measure of approximation of variational distribution and limiting posterior?
+
+\item
+Dimensionality? Is this just a problem of convergence/complexity?
+
+\end{itemize}
+
+\todo: other possible analyses?
 
 \subsubsection{Scratch notes}
 
@@ -154,6 +184,8 @@ q_\theta(z) &= \int q_\theta(z|\varepsilon)q(\varepsilon)d\varepsilon \\
 &= \frac{1}{\sqrt{2\pi\sigma_1^2}}\exp\left(-\frac{1}{2\sigma_1^2}(z-\theta)^2\right) \int \frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2\sigma_1^2}\left(-2(z-\theta)\varepsilon+\varepsilon^2\right)-\frac{1}{2}\varepsilon^2\right)d\varepsilon
 \end{align*}
 Posterior exact when ?
+
+\begin{itemize}
 
 \item
 If $h_\theta$ monotonic, invertible:
@@ -187,7 +219,7 @@ The objective in \sivi is a surrogate \elbo that is only exact asymptotically an
 \citet{Molchanova:2019} and \citet{Moens:2021} comment that \sivi and \uivi struggle in high-dimensional regimes. \mcmc methods also have high variance \citep{Moens:2021}.
 \\
 
-\citet{Moens:2021} introduce compositional implicit variational inference (CI-VI), which rewrites the \sivi \elbo as a compositional nested form $\E_\nu\left[f_\nu\left(\E_\omega\left[g_\omega(\theta)\right]\right)\right]$. The gradient involves estimated the nested expectations, for which a simple Monte-Carlo estimator would be biased. CI-VI uses an extrapolation-smoothing scheme for which the bias converges to zero with iterations. In practice, the gradient involves matrix-vector products that are expensive but can be approximated via sketching techniques. Under certain assumptions, convergence of the CI-VI algorithm is proved in terms of the number of oracle calls needed to convergence (\todo).
+\citet{Moens:2021} introduce compositional implicit variational inference (CI-VI), which rewrites the \sivi \elbo as a compositional nested form $\E_\nu\left[f_\nu\left(\E_\omega\left[g_\omega(\theta)\right]\right)\right]$. The gradient involves estimating the nested expectations, for which a simple Monte-Carlo estimator would be biased. CI-VI uses an extrapolation-smoothing scheme for which the bias converges to zero with iterations. In practice, the gradient involves matrix-vector products that are expensive but can be approximated via sketching techniques. Under certain assumptions, convergence of the CI-VI algorithm is proved in terms of the number of oracle calls needed to convergence (\todo).
 
 
 \section{Hierarchical variational inference}
@@ -253,6 +285,13 @@ Variational Inference} (2019)
 \href{https://jmlr.org/papers/volume22/19-1028/19-1028.pdf}{Normalizing Flows for Probabilistic Modeling and Inference} (2021)
 
 \href{https://arxiv.org/pdf/2002.09547.pdf}{Stochastic Normalizing Flows} (2020)
+\item
+Implicit VI:
+
+\href{https://bayesgroup.github.io/bmml_sem/2018/Molchanov_Implicit%20Models_2018_2.pdf}{Variational Inference with
+Implicit Models} (2018; slides)
+
+\href{https://arxiv.org/pdf/2010.12995.pdf}{Implicit Variational Inference: the Parameter and the Predictor Space} (2020): optimizing over predictor space rather than parameter space?
 \end{itemize}
 Theory/analysis
 \begin{itemize}
@@ -262,6 +301,8 @@ Theory/analysis
 \href{https://oaktrust.library.tamu.edu/bitstream/handle/1969.1/195122/PLUMMER-DISSERTATION-2021.pdf?sequence=1&isAllowed=y}{Statistical and Computational Properties of Variational Inference} (2021; thesis)
 \item
 \href{https://knowledge.uchicago.edu/record/2221?ln=en}{Theoretical Guarantees of Variational Inference and Its Applications} (2020; thesis)
+
+\href{https://arxiv.org/pdf/1710.03266.pdf}{$\alpha$-Variational Inference with Statistical Guarantees} (2018)
 \item
 \href{https://tel.archives-ouvertes.fr/tel-02893465/document}{Contributions to the theoretical study of variational inference and robustness} (2020; thesis)
 \item
