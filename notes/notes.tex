@@ -126,7 +126,7 @@ This says that for this normal-normal model, the true posterior is not in our va
 z &= \mu_\theta(\varepsilon_1) + \sigma_\theta(\varepsilon_2)u \\
 &\sim N\left(\E\left[\mu_\theta(\varepsilon_1)\right], \mathrm{Var}\left(\mu_\theta(\varepsilon_1)\right) + \mathrm{Var}\left(\sigma_\theta(\varepsilon_2)\right)\right)
 \end{align*}
-if learning independently. \todo Do Gaussian process/convolution ideas \citep{Plummer:2021} apply when reparameterized distribution is additive?
+if learning independently.
 
 \item
 Differential entropy not invariant under change of variables.
@@ -235,10 +235,10 @@ Predating \sivi and \uivi, \hvm first(?) addressed the restricted variational fa
 
 \section{Theoretical guarantees for implicit VI}
 
-\citet{Plummer:2021}.
+Based on \citet{Plummer:2021}.
 \\
 
-\todo: Considers non-linear latent variable model
+\todo: Considers non-linear latent variable model (NL-LVM)
 \begin{align*}
 z &= \mu(\varepsilon) + u \\
 u &\sim N(0,\sigma^2) \\
@@ -246,7 +246,27 @@ u &\sim N(0,\sigma^2) \\
 \mu &\sim \Pi_\mu \\
 \sigma &\sim \Pi_\sigma
 \end{align*}
-where $\Pi_\mu$ and $\Pi_\sigma$ are priors. $\Pi_\mu$ is taken as Gaussian process?
+where $\Pi_\mu$ and $\Pi_\sigma$ are priors. Can write as
+\begin{align*}
+z &= \mu(\varepsilon) + \sigma u \\
+u &\sim N(0,1)
+\end{align*}
+This leads to density
+\begin{align*}
+f_{\mu,\sigma}(z) = f(z;\mu,\sigma) &= \int_0^1\phi_\sigma(y-\mu(\bfeps))d\bfeps \\
+&= \int \phi_\sigma(y-t)d\nu_\mu(t)
+\end{align*}
+where $\phi_\sigma$ is the density of a N$(0,\sigma^2\bfI_d)$ distribution, and $\nu_\mu=\lambda\circ\mu^{-1}$ the image measure where $\lambda$ is the Lebesgue measure and $\mu:[0,1]\rightarrow\bbR$. The second form is a convolution with a Gaussian kernel and suggests that $f_{\mu,\sigma}$ is flexible depending on the choice of $\mu$. Under certain assumptions on $f_0$, it is known that $\phi_\sigma*f_0$ can approximate $f_0$ arbitrarily close as bandwidth $\sigma\rightarrow 0$.
+\\
+
+A Gaussian process latent variable model puts a GP prior for the transfer function $\mu$. (Theorem~3.1) If $\Pi_\mu$ has full sup-norm support on $C[0,1]$ and $\Pi_\sigma$ has full support on $[0,\infty)$, then the $L_1$ support of the induced prior $\Pi=(\Pi_\mu\otimes\Pi_\sigma)\circ f_{\mu,\sigma}^{-1}$ contains all densities which have a first finite moment and are non-zero almost everywhere on their support.
+\\
+
+\todo: posterior contraction says expected divergence of posterior density and true density goes to 0 given observations of the response $z$. The response in our case is the latent variable. Can this work with our observations $x$?
+\\
+
+Introduces Gaussian process implicit \vi (GP-IVI), which uses a finite mixture of uniform mixing distributions. \todo: transfer function not necessarily GP? Has probabilistic bound on error of best approximation to posterior and an $\alpha$-variational Bayes risk bound.
+\\
 
 For simple normal-normal model, KL divergence for true normal model and true posterior converges weakly to a $\chi_1^2$ and not to 0.
 
@@ -302,11 +322,11 @@ Theory/analysis
 \item
 \href{https://knowledge.uchicago.edu/record/2221?ln=en}{Theoretical Guarantees of Variational Inference and Its Applications} (2020; thesis)
 
-\href{https://arxiv.org/pdf/1710.03266.pdf}{$\alpha$-Variational Inference with Statistical Guarantees} (2018)
+\href{https://arxiv.org/pdf/1710.03266.pdf}{$\alpha$-Variational Inference with Statistical Guarantees} (2018): a particular variational family with theoretical guarantees
 \item
 \href{https://tel.archives-ouvertes.fr/tel-02893465/document}{Contributions to the theoretical study of variational inference and robustness} (2020; thesis)
 \item
-\href{https://par.nsf.gov/servlets/purl/10180931}{On Statistical Optimality of Variational Bayes} (2018)
+\href{https://par.nsf.gov/servlets/purl/10180931}{On Statistical Optimality of Variational Bayes} (2018): general guarantees for variational estimates as approximations for true data-generating parameter for MF-VI using variational risk bounds?
 
 \href{https://math.unm.edu/~skripka/workshop_high_dim/Anirban_Talks.pdf}{Statistical guarantees for variational Bayes} (2021; slides)
 \item
