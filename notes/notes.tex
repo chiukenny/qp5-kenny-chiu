@@ -75,7 +75,7 @@ To estimate the inner expectation, samples are drawn from the reverse conditiona
 
 \end{itemize}
 
-\subsection{Analysis}
+\subsection{Quality of approximation}
 
 \todo: analyze the (best-case) approximation of \uivi. Questions:
 \begin{enumerate}
@@ -159,7 +159,20 @@ Dimensionality? Is this just a problem of convergence/complexity?
 
 \end{itemize}
 
-\todo: other possible analyses?
+
+\subsubsection{Gradient variance}
+
+\todo are there scenarios where \uivi breaks down that other \vi methods may not?
+
+\begin{itemize}
+
+\item
+If mixing distribution is discrete, we may have label-switching problems, particularly with \mcmc? \citep{Chung:2004}
+
+Example: $q(\bfeps)=\mathrm{Bernoulli}(0.5)$. Then in normal reparameterization, we end up with parameters $\{\mu_1,\Sigma_1\}$, $\{\mu_2,\Sigma_2\}$. Can we estimate these following \elbo gradient or do we get degeneracy somehow?
+
+\end{itemize}
+
 
 \subsubsection{Scratch notes}
 

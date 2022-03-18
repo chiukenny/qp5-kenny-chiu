@@ -78,7 +78,9 @@ Aside from the \uivi algorithm, other contributions of the paper by \citet{Titsi
 The paper by \citet{Titsias:2019} has few limitations. The main limitation is the lack of theoretical guarantees for the performance and convergence of \uivi. However, this is a common problem across the \vi literature and generally stems from the challenge of analyzing general purpose methods that may include intractable and non-analytic components. \todo other limitations?
 \\
 
-In terms of \uivi itself, related work published after \uivi reported limitations in scalability to the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of optimizing the \elbo via stochastic gradients, for which iterations are cheap but at a cost of requiring more iterations particularly with increased dimensions. Using \mcmc may also lead to higher variance in the \elbo gradient estimates~\citep{Betancourt:2015}. \todo
+In terms of \uivi itself, related work published after \uivi reported limitations in scalability to the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of optimizing the \elbo via stochastic gradients, for which iterations are cheap but at a cost of requiring more iterations particularly with increased dimensions. Using \mcmc may also lead to higher variance in the \elbo gradient estimates~\citep{Betancourt:2015}. \todo other issues with \mcmc?
+
+\todo label switching issues with mixtures?
 
 
 \subsection{Other related work}
@@ -100,6 +102,12 @@ In terms of \uivi itself, related work published after \uivi reported limitation
 \vspace{2em}
 
 \subsection{Introduction}
+
+\subsection{Quality of approximation}
+
+\subsection{Variance of gradient}
+
+\subsection{Discussion}
 
 
 \newpage
