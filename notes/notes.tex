@@ -269,13 +269,13 @@ This leads to density
 f_{\mu,\sigma}(z) = f(z;\mu,\sigma) &= \int_0^1\phi_\sigma(y-\mu(\bfeps))d\bfeps \\
 &= \int \phi_\sigma(y-t)d\nu_\mu(t)
 \end{align*}
-where $\phi_\sigma$ is the density of a N$(0,\sigma^2\bfI_d)$ distribution, and $\nu_\mu=\lambda\circ\mu^{-1}$ the image measure where $\lambda$ is the Lebesgue measure and $\mu:[0,1]\rightarrow\bbR$. The second form is a convolution with a Gaussian kernel and suggests that $f_{\mu,\sigma}$ is flexible depending on the choice of $\mu$. Under certain assumptions on $f_0$, it is known that $\phi_\sigma*f_0$ can approximate $f_0$ arbitrarily close as bandwidth $\sigma\rightarrow 0$.
+where $\phi_\sigma$ is the density of a N$(0,\sigma^2\bfI_d)$ distribution, and $\nu_\mu=\lambda\circ\mu^{-1}$ the image measure where $\lambda$ is the Lebesgue measure and $\mu:[0,1]\rightarrow\bbR$. The second form is a convolution with a Gaussian kernel and suggests that $f_{\mu,\sigma}$ is flexible depending on the choice of $\mu$. Under certain assumptions on $f_0$, it is known that $\phi_\sigma*f_0$ can approximate $f_0$ arbitrarily close as bandwidth $\sigma\rightarrow 0$. This should hold for \uivi under particular choices of the reparameterization and mixing distributions.
 \\
 
 A Gaussian process latent variable model puts a GP prior for the transfer function $\mu$. (Theorem~3.1) If $\Pi_\mu$ has full sup-norm support on $C[0,1]$ and $\Pi_\sigma$ has full support on $[0,\infty)$, then the $L_1$ support of the induced prior $\Pi=(\Pi_\mu\otimes\Pi_\sigma)\circ f_{\mu,\sigma}^{-1}$ contains all densities which have a first finite moment and are non-zero almost everywhere on their support.
 \\
 
-\todo: posterior contraction says expected divergence of posterior density and true density goes to 0 given observations of the response $z$. The response in our case is the latent variable. Can this work with our observations $x$?
+\todo: posterior contraction says expected divergence of posterior density and true density goes to 0 given observations of the response $z$. The response in our case is the latent variable. Can this work with our observations $x$? This likely does not apply as the true posterior is the one that changes and the variational distribution is only approximating the true posterior. If the true posterior is always in the family and we can approximate it exactly then posterior contraction follows standard Bayesian results.
 \\
 
 Introduces Gaussian process implicit \vi (GP-IVI), which uses a finite mixture of uniform mixing distributions. \todo: transfer function not necessarily GP? Has probabilistic bound on error of best approximation to posterior and an $\alpha$-variational Bayes risk bound.

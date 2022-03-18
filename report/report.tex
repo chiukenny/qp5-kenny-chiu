@@ -18,7 +18,7 @@
 
 \subsection{Introduction}
 
-\todo \citet{Titsias:2019} introduce Unbiased Implicit Variational Inference (\uivi) as a variational inference method that allows for a flexible variational family and that addresses the issues of the methods that it is built on. In this analysis, we summarize the work of \citet{Titsias:2019} in the context of the literature and critically examine the strengths and limitations of \uivi. This analysis is organized as follows: Section~\ref{an:literature} introduces the problem context and previous work; Section~\ref{an:uivi} describes how \uivi works and how it addresses the limitations of previous methods, and discusses its own limitations. \todo new section?
+\todo \citet{Titsias:2019} introduce Unbiased Implicit Variational Inference (\uivi) as a variational inference method that allows for a flexible variational family and that addresses the issues of the methods that it is built on. In this analysis, we summarize the work of \citet{Titsias:2019} in the context of the literature and critically examine the strengths and limitations of \uivi. This analysis is organized as follows: Section~\ref{an:literature} introduces the problem context and previous work; Section~\ref{an:uivi} describes how \uivi works, how it addresses the limitations of previous methods, and its own limitations; and Section~\ref{an:postpaper} highlights related work in the recent literature and discusses the general direction that the literature is moving towards.
 
 \subsection{Context and previous work} \label{an:literature}
 
@@ -26,16 +26,16 @@ Variational inference (\vi) \citep{Jordan:1999} is a Bayesian inference method t
 \[
 \calL(\theta) = \E_{q_\theta(\bfz)}\left[\log p(\bfx,\bfz) - \log q_\theta(\bfz)\right] \;.
 \]
-To maximize the \elbo, standard \vi places strong restrictions on the choice of the model and the variational family in order to allow the use of a coordinate ascent algorithm. These restrictions include (1) a mean-field assumption where the latent variables are marginally independent and the variational distribution factorizes as $q_\theta(\bfz)=\prod_{i=1}^dq_{\theta_i}(\bfz_i)$ and (2) the model has conjugate conditionals where $p(\bfz_i)$ and $p(\bfz_i|\bfx,\bfz_{\neg i})$ are from the same distribution family.
+To maximize the \elbo, standard \vi places strong restrictions on the choice of the model and the variational family in order to allow the use of a coordinate ascent algorithm. These restrictions include (1) a mean-field assumption where the latent variables $\bfz$ are marginally independent and the variational distribution factorizes as $q_\theta(\bfz)=\prod_{i=1}^dq_{\theta_i}(\bfz_i)$ and (2) the model has conjugate conditionals where $p(\bfz_i)$ and $p(\bfz_i|\bfx,\bfz_{\neg i})$ are from the same distribution family.
 \\
 
-A major development from standard \vi was black box \vi (\bbvi) \citep{Ranganath:2014} which relaxed the restrictive assumptions by optimizing the \elbo using a different approach. By rewriting the \elbo gradient in terms of an expectation, the gradient could be estimated via Monte Carlo approaches. Exchanging the above assumptions for the different assumption that one can sample from the variational distribution $q_\theta(\bfz)$ expanded the possibilities for the choice of the variational family. In particular, hierarchical variational families \citep{Ranganath:2016} of the form $q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q_\theta(\bfeps)d\bfeps$ were proposed with their main strength being the ability to model marginal dependencies between latent variables (which the mean-field family could not) through the mixing distribution $q_\theta(\bfeps)$.
+A major development from standard \vi was black box \vi (\bbvi) \citep{Ranganath:2014} which relaxed the restrictive assumptions by optimizing the \elbo using a different approach. By rewriting the \elbo gradient in terms of an expectation, the gradient could be estimated via Monte Carlo approaches. Exchanging the above assumptions for the different assumption that one can sample from the variational distribution $q_\theta(\bfz)$ expanded the possibilities for the choice of the variational family. One such proposed family was the hierarchical variational model (\hvm) \citep{Ranganath:2016} containing distributions of the form $q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q_\theta(\bfeps)d\bfeps$. An advantage of these hierarchical distributions over other variational distributions is the ease in being able to model marginal dependencies between latent variables (which the mean-field family could not) through the mixing distribution $q_\theta(\bfeps)$.
 \\
 
-Further pushing the assumption that one only needs to be able to sample from the variational distribution, another development in hierarchical variational models was the incorporation of implicit distributions~\citep{Mohamed:2016} in various forms. Without needing to evaluate the density of the implicit distribution, flexible models such as normalizing flows~\citep{Rezende:2015} and deep neural networks could be leveraged to expand the modeling capacity of the variational family. Using implicit distributions came at a cost of making the log density ratio in the \elbo intractable. Density ratio estimation is one approach for tackling this problem~\citep[e.g.,][]{Mohamed:2016,Huszar:2017}, but it is known to struggle in high-dimensional regimes~\citep{Sugiyama:2012}.
+Further pushing the assumption that one only needs to be able to sample from the variational distribution, one development in the hierarchical variational model literature was the incorporation of implicit distributions~\citep{Mohamed:2016} in various forms.  Without needing to evaluate the density of the implicit distribution, flexible models such as normalizing flows~\citep{Rezende:2015} and deep neural networks could be leveraged to expand the modeling capacity of the variational family. Using implicit distributions came at a cost of making the log density ratio in the \elbo intractable. Density ratio estimation is one approach for tackling this problem~\citep[e.g.,][]{Mohamed:2016,Huszar:2017}, but it is known to struggle in high-dimensional regimes~\citep{Sugiyama:2012}.
 \\
 
-The method that predates \uivi and that was proposed to address the challenges of using implicit distributions in hierarchical variational models is semi-implicit \vi (\sivi)~\citep{Yin:2018}. \sivi requires the variational conditional $q_\theta(\bfz|\bfeps)=q(\bfz|\bfeps)$ to be reparameterizable~\citep{Kingma:2013} and explicit and the mixing distribution $q_\theta(\bfeps)$ also to be reparameterizable but possibly implicit. \sivi then avoids the density ratio estimation problem by instead optimizing a lower bound for the \elbo that is only exact as the number of samples in each iteration goes to infinity~\citep{Yin:2018,Molchanov:2019}.
+The method that predates \uivi and that was proposed to address the challenges of using implicit distributions in hierarchical variational models is semi-implicit \vi (\sivi)~\citep{Yin:2018}. \sivi requires the variational conditional $q_\theta(\bfz|\bfeps)=q(\bfz|\bfeps)$ to be reparameterizable~\citep{Kingma:2013} and explicit and requires the mixing distribution $q_\theta(\bfeps)$ also to be reparameterizable but possibly implicit. \sivi then avoids the density ratio estimation problem by instead optimizing a lower bound for the \elbo that is only exact as the number of samples in each iteration goes to infinity~\citep{Yin:2018,Molchanov:2019}.
 
 
 \subsection{Current work} \label{an:uivi}
@@ -52,40 +52,49 @@ q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q(\bfeps)d\bfeps \;.
 \[
 \bfz = h_\theta(\bfu;\bfeps) := h_{\bfpsi=g_\theta(\bfeps)}(\bfu) 
 \]
-where $h_{\bfpsi}$ is some function with parameters $\bfpsi$ that are the output of some function $g_\theta$ with variational parameters $\theta$ and input $\bfeps$. Noise variables $\bfu\sim q(\bfu)$ and $\bfeps\sim q(\bfeps)$ are sampled from auxiliary distributions that are fixed. \uivi also requires that $q_\theta(\bfz|\bfeps)$ and its log-gradient $\nabla_\bfz\log q_\theta(\bfz|\bfeps)$ can be evaluated, which holds for many reparameterizable distributions.
+where $h_{\bfpsi}$ is some deterministic function with parameters $\bfpsi$ that are the output of some function $g_\theta$ that depends on variational parameters $\theta$ and input $\bfeps$. To sample from $q_\theta(\bfz)$, noise variables $\bfu\sim q(\bfu)$ and $\bfeps\sim q(\bfeps)$ are first sampled from fixed auxiliary distributions and then fed through $h_\theta$. \textsc{Uivi} also requires that $q_\theta(\bfz|\bfeps)$ and its log-gradient $\nabla_\bfz\log q_\theta(\bfz|\bfeps)$ can be evaluated, which holds for common reparameterizable distributions such as Gaussian.
 \\
 
 Under these assumptions, the \elbo can be rewritten as an expectation with respect to the noise distributions $q(\bfu)$ and $q(\bfeps)$, and its gradient can be decomposed into two terms given by
 \[
 \nabla_\theta \calL(\theta) = \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log q(\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] \;.
 \]
-The first expectation can be estimated using samples from $q(\bf\eps)$ and $q(\bfu)$ while the second expectation is more difficult as $\nabla_z\log q(\bfz)$ may not be evaluated if $q(\bfz)$ is implicit. The first key trick in \uivi is to rewrite the gradient as an expectation given by
+The first expectation can be estimated using samples from $q(\bfeps)$ and $q(\bfu)$ while the second expectation is more difficult as $\nabla_z\log q(\bfz)$ may not be computable if $q(\bfz)$ is implicit. The first key trick in \uivi is to rewrite the gradient in the second term as an expectation given by
 \[
 \nabla_z\log q(\bfz) = \E_{q_\theta(\bfeps|\bfz)}\left[\nabla_\bfz\log q_\theta(\bfz|\bfeps)\right]
 \]
-which then allows for Monte Carlo estimation using samples from $q_\theta(\bfeps|\bfz)\propto q_\theta(\bfz|\bfeps)q(\bfeps)$. The second key trick in \uivi is to reuse a sample $(\bfz_i,\bfeps_i)$ from estimating the outer expectation as an initial point in a Markov chain Monte Carlo (\mcmc) sampler. As the initial point is a sample from the same joint distribution $q_\theta(\bfz,\bfeps)$, no burn-in is necessary and the only purpose of the \mcmc is to break the dependence between samples used to estimate the inner and outer expectations. Thus, the gradient of the \elbo is estimated by
+which then allows for Monte Carlo estimation using samples from $q_\theta(\bfeps|\bfz)\propto q_\theta(\bfz|\bfeps)q(\bfeps)$. A Markov chain Monte Carlo (\mcmc) sampler is used to sample from $q_\theta(\bfeps|\bfz)$, and the second key trick in \uivi is to reuse the sample $(\bfz_i,\bfeps_i)$ used to estimate the outer expectation as an initial point in the \mcmc sampler. As the initial point is a sample from the same joint distribution $q_\theta(\bfz,\bfeps)$, no burn-in is necessary and the only purpose of the \mcmc is to break the dependence between samples used to estimate the inner and outer expectations. Thus, the gradient of the \elbo is estimated by
 \[
 \widehat{\nabla}_\theta\calL(\theta) = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} \right)\nabla_\theta h_\theta(\bfu_i;\bfeps_i)
 \]
-where $\bfeps_i\sim q(\bfeps)$, $\bfu_i\sim q(\bfu)$, $\bfeps_j'\sim q_\theta(\bfeps|\bfz)$ and with $n=1$ said to be used in practice.
+where $\bfeps_i\sim q(\bfeps)$, $\bfu_i\sim q(\bfu)$, $\bfeps_j'\sim q_\theta(\bfeps|\bfz)$ and with $n=1$, $m=5$ said to be used in practice.
 
 \subsubsection{Other contributions}
 
-Aside from the \uivi algorithm, other contributions of the paper by \citet{Titsias:2019} include the empirical evaluations of \uivi on synthetic and benchmark datasets. Using a Gaussian conditional with a neural network for the mean parameter, Hamiltonian Monte Carlo (\hmc) for the \mcmc estimation of the \elbo gradient, and otherwise a fairly standard setup, \uivi is visually shown to be able to approximate various synthetic 2D distributions. Under a similar setup, \uivi is shown to be able to achieve better predictive performance than \sivi on the MNIST and HAPT~\citep{Reyes:2014} datasets while being comparable in terms of time per iteration. Finally, \citet{Titsias:2019} show that using a semi-implicit variational distribution in a variational autoencoder (\vae)~\citep{Kingma:2013}, \uivi achieves a greater marginal log-likelihood on the test set compared to standard \vae and \sivi on the MNIST and Fashion-MNIST datasets.
+Aside from the \uivi algorithm, other contributions of the paper by \citet{Titsias:2019} include the empirical evaluations of \uivi on synthetic and benchmark datasets. Using a Gaussian conditional with a neural network for the mean parameter, Hamiltonian Monte Carlo (\hmc) for the \mcmc estimation of the \elbo gradient, and otherwise a fairly standard setup, \uivi is shown to be able to visually approximate various synthetic 2D distributions. Under a similar setup, \uivi is shown to be able to achieve better predictive performance than \sivi on the MNIST and HAPT~\citep{Reyes:2014} datasets while being comparable in terms of time per iteration. Finally, \citet{Titsias:2019} show that using a semi-implicit variational distribution in a variational autoencoder (\vae)~\citep{Kingma:2013}, \uivi achieves a greater marginal log-likelihood on the test set compared to standard \vae and \sivi on the MNIST and Fashion-MNIST datasets.
 
 \subsubsection{Limitations}
 
-The paper by \citet{Titsias:2019} has few limitations. The main limitation is the lack of theoretical guarantees for the performance and convergence of \uivi. However, this is a common problem across the \vi literature and generally stems from the challenge of analyzing general purpose methods that may include intractable and non-analytic components. \todo other limitations?
+The paper by \citet{Titsias:2019} has a few limitations. The main limitation is the lack of theoretical guarantees for the performance and convergence of \uivi. However, this is a common problem across the \vi literature and generally stems from the challenge of analyzing general purpose methods that may include intractable and non-analytic components. \todo other limitations?
 \\
 
-In terms of \uivi itself, related work published after \uivi reported limitations in scalability to the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of optimizing the \elbo via stochastic gradients, for which iterations are cheap but at a cost of requiring more iterations particularly with increased dimensions. Using \mcmc may also lead to higher variance in the \elbo gradient estimates~\citep{Betancourt:2015}. \todo other issues with \mcmc?
+In terms of \uivi itself, related work published after \uivi reported limitations in scalability to the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of the stochastic optimization of the \elbo as well as the use of \mcmc, for both of which the number of samples needed to provide a reasonable estimate of a mean grow quickly with the number of dimensions. Using \mcmc may also lead to higher variance in the \elbo gradient estimates~\citep{Betancourt:2015}. \todo other issues with \mcmc? non-parallelizable (\citep{Sobolev:2019})?
 
 \todo label switching issues with mixtures?
 
 
-\subsection{Other related work}
+\subsection{Other related work} \label{an:postpaper}
 
-\todo work that came after?
+While \uivi was proposed as an improved alternative to \sivi, there does not appear to be follow-up work in the literature that directly extends \uivi. As mentioned in the previous section, the inefficiency of \mcmc in high-dimensional regimes is often cited as the main problem of \uivi~\citep{Molchanova:2019,Moens:2021}. It appears that rather than trying to address this issue in \uivi, recent work in the literature tend to start with \sivi and propose methods that either improve the quality of approximation or let it scale more efficiently to high dimensions.
+\\
+
+Several strategies for improving the \sivi approximation have been proposed in the literature around the time of or after the work by \citet{Titsias:2019}. \citet{Molchanov:2019} proposed \textit{doubly}~\sivi (\dsivi) that expands the flexibility of standard \sivi by allowing both the posterior and prior to be semi-implicit. \citet{Sobolev:2019} introduced \textit{importance weighted hierarchical}~\vi (\iwhvi), which optimizes a \sivi-like lower bound that incorporates elements from the bound used in importance weighted autoencoders~\citep{Burda:2015}. \textsc{Sivi}, \dsivi and \hvm can be seen as special cases of \iwhvi and so the bound in \iwhvi has the capacity to result in a tighter lower bound~\citep{Sobolev:2019}.
+\\
+
+Recent work in the literature have focused more on improving the scalability of \sivi to high dimensions. \citet{Molchanova:2019} proposed \textit{structured}~\sivi where the high-dimensional semi-implicit distribution is assumed to factorize into low-dimensional semi-implicit distributions. \citet{Moens:2021} introduced \textit{compositional implicit}~\vi, which integrates various mechanisms into \sivi including an adaptive solver for addressing the bias in the \sivi objective and sketch-based approximations that keeps the method computationally practical for high-dimensional regimes.
+\\
+
+Though the majority of developments in the related literature are methodological, there have been some recent forays on the more theoretical side that attempt to provide statistical guarantees and insights for implicit \vi. In particular, \citet{Plummer:2021} derive posterior contraction results for simple \textit{non-linear latent variable models} by drawing connections to Gaussian convolutions. The \nllvm has a structure that can be seen as a particular choice of the reparameterization and mixing distributions in \uivi, and so we suspect that this work may provide a reasonable starting point for a theoretical analysis of \uivi.
 
 
 \newpage
@@ -104,6 +113,8 @@ In terms of \uivi itself, related work published after \uivi reported limitation
 \subsection{Introduction}
 
 \subsection{Quality of approximation}
+
+\todo Due to time constraints on this project, we focus on the simpler question of, \textit{is the true posterior in the \uivi variational family?}. Using similar arguments from the work by \citet{Plummer:2021} for \nllvm, we show that under certain assumptions and particular choices of the reparameterization and mixing distribution, we can approximate the true posterior arbitrarily closely.
 
 \subsection{Variance of gradient}
 
