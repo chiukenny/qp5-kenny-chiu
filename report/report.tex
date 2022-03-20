@@ -112,9 +112,49 @@ Though the majority of developments in the related literature are methodological
 
 \subsection{Introduction}
 
+\subsection{Notation}
+
+\todo $\phi_\sigma$ density of $\calN(0,\sigma^2\bfI_d)$. Overload distribution and density. $\lambda$ Lebesgue measure on $[0,1]$. Borel $\sigma$-algebra of $\bbR^d$ by $\calB$.
+
 \subsection{Quality of approximation}
 
-\todo Due to time constraints on this project, we focus on the simpler question of, \textit{is the true posterior in the \uivi variational family?}. Using similar arguments from the work by \citet{Plummer:2021} for \nllvm, we show that under certain assumptions and particular choices of the reparameterization and mixing distribution, we can approximate the true posterior arbitrarily closely.
+\todo Due to time constraints on this project, we focus on the simpler question of, \textit{is the true posterior in the \uivi variational family?}. Using similar arguments from the work by \citet{Plummer:2021} for \nllvm, we show that under certain assumptions and particular choices of the reparameterization and mixing distribution, we can approximate the true posterior arbitrarily closely. For convenience, we assume that $p(\bfz|\bfx)$ is continuous.
+
+\todo
+
+To approximate $p(\bfz|\bfx)$, \uivi posits the variational family $\calQ$ of distributions of the form
+\[
+q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q(\bfeps)\lambda(d\bfeps) \;.
+\]
+where the variational conditional $q_\theta(\bfz|\bfeps)$ is reparameterizable and explicit, but the dependency on $\theta$ can be arbitrarily complex. \textsc{Uivi} also requires that the log-gradient $\nabla_\bfz\log q_\theta(\bfz|\bfeps)$ can be evaluated.
+\\
+
+Let $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for all $i$. Let $q_\theta(\bfz|\bfeps)$ be multivariate Gaussian with mean $\mu_\theta(\bfeps)$ and covariance matrix $\sigma^2\bfI_d$ where $\mu_\theta:[0,1]^d\rightarrow\bbR^d$ is some arbitrarily complex function. This distribution satisfies the requirements of \uivi as it is reparameterizable through the form
+\[
+\bfz = h_\theta(\bfu;\bfeps) = \mu_\theta(\bfeps) + \sigma\bfu
+\]
+where $\bfu\sim \calN(0,\bfI_d)$, and the log-density and its gradient is given by
+\begin{align*}
+\log q_\theta(\bfz|\bfeps) &= -\frac{1}{2}\log\det\left(2\pi\sigma^2\bfI_d\right)-\frac{1}{2\sigma^2}\left(\bfz-\mu_\theta(\bfeps)\right)^\T\left(\bfz-\mu_\theta(\bfeps)\right) \;, \\
+\nabla_\bfz \log q_\theta(\bfz|\bfeps) &= -\frac{1}{\sigma^2}\left(\bfz-\mu_\theta(\bfeps)\right) \;.
+\end{align*}
+Then the key insight of \citet{Plummer:2021} is that $q_\theta(\bfz)$ has the form of a convolution with a Gaussian kernel, that is,
+\begin{align*}
+q_\theta(\bfz) &= \int_0^1 q_\theta(\bfz|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
+&= \int_0^1 \phi_\sigma\left(\bfz-\mu_\theta(\bfeps)\right)\lambda(d\bfeps) \\
+&= \int \phi_\sigma\left(\bfz-\bft\right)\nu_{\mu_\theta}(d\bft)
+\end{align*}
+where $\nu_{\mu_\theta}=\lambda\left(\mu_\theta^{-1}(B)\right)$, $B\in\calB$, is the image measure of $\lambda$ under $\mu_\theta$. \todo
+
+\begin{proposition}
+Let $F_{\bfz|\bfx}$ be the cumulative distribution function of the posterior $p(\bfz|\bfx)$. If there exists a $\theta\in\Theta$ such that $\mu_\theta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ for all $t\in[0,1]$, then $p(\bfz|\bfx)$ can be approximated arbitrarily closely by $q_\theta(\bfz)$.
+\end{proposition}
+\begin{proof}
+Suppose that $\mu_\theta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ and so $q_\theta(\bfz)=\phi_\sigma*p(\bfz|\bfx)$. Then as $\sigma\rightarrow0$, $q_\theta(\bfz)$ approximates $p(\bfz|\bfx)$ arbitrary closely. \todo citation?
+\end{proof}
+
+\todo convergence error \citet{Kruijer:2010}
+
 
 \subsection{Variance of gradient}
 
