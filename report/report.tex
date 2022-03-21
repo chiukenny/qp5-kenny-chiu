@@ -114,46 +114,86 @@ Though the majority of developments in the related literature are methodological
 
 \subsection{Notation}
 
-\todo $\phi_\sigma$ density of $\calN(0,\sigma^2\bfI_d)$. Overload distribution and density. $\lambda$ Lebesgue measure on $[0,1]$. Borel $\sigma$-algebra of $\bbR^d$ by $\calB$.
+\todo $\phi_\sigma$ density of $\calN(0,\sigma^2\bfI_d)$. Overload distribution and density. $\lambda$ Lebesgue measure on $[0,1]$. Borel $\sigma$-algebra of $\bbR$ by $\calB$. $C^\beta(\calZ)$ $\beta$-H\"{o}lder. $\|\argdot\|_\infty$ supremum norm
 
 \subsection{Quality of approximation}
 
-\todo Due to time constraints on this project, we focus on the simpler question of, \textit{is the true posterior in the \uivi variational family?}. Using similar arguments from the work by \citet{Plummer:2021} for \nllvm, we show that under certain assumptions and particular choices of the reparameterization and mixing distribution, we can approximate the true posterior arbitrarily closely. For convenience, we assume that $p(\bfz|\bfx)$ is continuous.
+\todo Due to time constraints on this project, we focus on the simpler question of, \textit{is the true posterior in the \uivi variational family?} \todo also quality. Using similar arguments from the work by \citet{Plummer:2021} for \nllvm, we show that under certain assumptions and particular choices of the reparameterization and mixing distribution, we can approximate the true posterior arbitrarily closely. For convenience, we assume that $p(z|x)$ is continuous. \todo: for simplicity, assume univariate latent variable
 
 \todo
 
-To approximate $p(\bfz|\bfx)$, \uivi posits the variational family $\calQ$ of distributions of the form
+To approximate $p(z|x)$, \uivi posits the variational family $\calQ$ of distributions of the form
 \[
-q_\theta(\bfz) = \int q_\theta(\bfz|\bfeps)q(\bfeps)\lambda(d\bfeps) \;.
+q_\theta(z) = \int q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \;.
 \]
-where the variational conditional $q_\theta(\bfz|\bfeps)$ is reparameterizable and explicit, but the dependency on $\theta$ can be arbitrarily complex. \textsc{Uivi} also requires that the log-gradient $\nabla_\bfz\log q_\theta(\bfz|\bfeps)$ can be evaluated.
+where the variational conditional $q_\theta(z|\bfeps)$ is reparameterizable and explicit, but the dependency on $\theta$ can be arbitrarily complex. \textsc{Uivi} also requires that the log-gradient $\nabla_z\log q_\theta(z|\bfeps)$ can be evaluated.
 \\
 
-Let $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for all $i$. Let $q_\theta(\bfz|\bfeps)$ be multivariate Gaussian with mean $\mu_\theta(\bfeps)$ and covariance matrix $\sigma^2\bfI_d$ where $\mu_\theta:[0,1]^d\rightarrow\bbR^d$ is some arbitrarily complex function. This distribution satisfies the requirements of \uivi as it is reparameterizable through the form
+Let $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for $i=1,\ldots,d$, $d\geq 1$. Let $q_\theta(z|\bfeps)$ be univariate Gaussian with mean $\mu_\theta(\bfeps)$ and variance $\sigma^2$ where $\mu_\theta:[0,1]^d\rightarrow\bbR$ is some arbitrarily complex function. This distribution satisfies the requirements of \uivi as it is reparameterizable through the form
 \[
-\bfz = h_\theta(\bfu;\bfeps) = \mu_\theta(\bfeps) + \sigma\bfu
+z = h_\theta(u;\bfeps) = \mu_\theta(\bfeps) + \sigma u
 \]
-where $\bfu\sim \calN(0,\bfI_d)$, and the log-density and its gradient is given by
+where $u\sim \calN(0,1)$, and the log-density and its gradient is given by
 \begin{align*}
-\log q_\theta(\bfz|\bfeps) &= -\frac{1}{2}\log\det\left(2\pi\sigma^2\bfI_d\right)-\frac{1}{2\sigma^2}\left(\bfz-\mu_\theta(\bfeps)\right)^\T\left(\bfz-\mu_\theta(\bfeps)\right) \;, \\
-\nabla_\bfz \log q_\theta(\bfz|\bfeps) &= -\frac{1}{\sigma^2}\left(\bfz-\mu_\theta(\bfeps)\right) \;.
+\log q_\theta(z|\bfeps) &= -\frac{1}{2}\log\left(2\pi\sigma^2\right)-\frac{1}{2\sigma^2}\left(z-\mu_\theta(\bfeps)\right)^2 \;, \\
+\nabla_z \log q_\theta(z|\bfeps) &= -\frac{1}{\sigma^2}\left(z-\mu_\theta(\bfeps)\right) \;.
 \end{align*}
-Then the key insight of \citet{Plummer:2021} is that $q_\theta(\bfz)$ has the form of a convolution with a Gaussian kernel, that is,
+The key insight of \citet{Plummer:2021} is that $q_\theta(z)$ has the form of a convolution with a Gaussian kernel, that is,
 \begin{align*}
-q_\theta(\bfz) &= \int_0^1 q_\theta(\bfz|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
-&= \int_0^1 \phi_\sigma\left(\bfz-\mu_\theta(\bfeps)\right)\lambda(d\bfeps) \\
-&= \int \phi_\sigma\left(\bfz-\bft\right)\nu_{\mu_\theta}(d\bft)
+q_\theta(z) &= \int_0^1 q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
+&= \int_0^1 \phi_\sigma\left(z-\mu_\theta(\bfeps)\right)\lambda(d\bfeps) \\
+&= \int_\bbR \phi_\sigma\left(z-t\right)\nu_{\mu_\theta}(dt)
 \end{align*}
-where $\nu_{\mu_\theta}=\lambda\left(\mu_\theta^{-1}(B)\right)$, $B\in\calB$, is the image measure of $\lambda$ under $\mu_\theta$. \todo
+where $\nu_{\mu_\theta}(B)=\lambda\left(\mu_\theta^{-1}(B)\right)$, $B\in\calB$, is the image measure of $\lambda$ under $\mu_\theta$.
 
 \begin{proposition}
-Let $F_{\bfz|\bfx}$ be the cumulative distribution function of the posterior $p(\bfz|\bfx)$. If there exists a $\theta\in\Theta$ such that $\mu_\theta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ for all $t\in[0,1]$, then $p(\bfz|\bfx)$ can be approximated arbitrarily closely by $q_\theta(\bfz)$.
+Let $\calQ_\sigma$ denote the variational family described above indexed by the standard deviation $\sigma$ of $q_\theta(z|\bfeps)$. Suppose that $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$. Then $p(z|x)\in\calQ_0$.
 \end{proposition}
 \begin{proof}
-Suppose that $\mu_\theta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ and so $q_\theta(\bfz)=\phi_\sigma*p(\bfz|\bfx)$. Then as $\sigma\rightarrow0$, $q_\theta(\bfz)$ approximates $p(\bfz|\bfx)$ arbitrary closely. \todo citation?
+If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then $q_\theta(z) = \phi_\sigma*p(z|x)$. The result immediately follows using the property of Gaussian convolutions that $\phi_\sigma*p(z|x)\rightarrow p(z|x)$ pointwise as $\sigma\rightarrow0$.
 \end{proof}
 
-\todo convergence error \citet{Kruijer:2010}
+\todo assuming that our optimization procedure is able to identify $\theta$
+
+Then by using the approximation properties of Gaussian convolutions, we can characterize the quality of the approximation of $p(z|x)$ by $q(z)$.
+\\
+
+To quantify the quality of the approximation, we must make assumptions about the smoothness of $p(z|x)$ and its support. Following \citet{Plummer:2021}, we make the following assumptions:
+
+\begin{assumption} \label{asp:p1}
+$\log p(z|x) \in C^\beta([0,1])$. Define $l_j(z_0) = \nabla_z^j\log p(z|x)\big|_{z=z_0}$ for $j=1,\ldots,r$ with $r=\lfloor\beta\rfloor$. For any $\beta>0$, there exists a constant $L>0$ such that for all $z_1\neq z_2$,
+\[
+|l_r(z_1)-l_r(z_2)| \leq L|z_1-z_2|^{\beta-r} \;.
+\]
+\end{assumption}
+
+\begin{assumption} \label{asp:p2}
+$p(z|x)$ has compact support on $[0,1]$. There exists some interval $[z_1,z_2]\subset[0,1]$ such that $p(z|x)$ is non-decreasing and non-zero on $[0,z_1]$ and non-increasing on $[z_2,1]$.
+\end{assumption}
+
+\todo explain assumptions
+
+\todo Following \citet{Kruijer:2010} and \citet{Plummer:2021}, we can construct a sequence of functions $\{p_j\}_{j\geq0}$ through an iterative procedure where
+\begin{align*}
+p_{j+1}(z|x) &= p(z|x) - \Delta_\sigma p_j(z|x) \;, \\
+\Delta_\sigma p_j(z|x) &= \phi_\sigma * p_j(z|x) - p_j(z|x)
+\end{align*}
+for $j\geq0$ and $p_0(z|x)=p(z|x)$.
+
+\begin{proposition}
+Suppose that $p(z|x)$ satisfies Assumptions~\ref{asp:p1} and \ref{asp:p2} with $\beta\in(2j,2j+2]$. Let $F_{z|x}$ be the cumulative distribution function of the posterior $p(z|x)$. \todo fix this If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then
+\[
+\|\phi_\sigma * p_\beta(z|x) - p(z|x)\|_\infty = O(\sigma^\beta)
+\]
+with
+\[
+\phi_\sigma * p_\beta(z|x) = p(z|x)\left(1+O(\sigma^\beta)\left(\sum_{i=1}^rc_i|l_j(z)|^{\frac{\beta}{i}}+c_{r+1}\right)\right)
+\]
+for non-negative constants $c_i$, $i=1,\ldots,r+1$ and $z\in[0,1]$.
+\end{proposition}
+\begin{proof}
+Suppose that $\mu_\theta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ and so $q_\theta(\bfz)=\phi_\sigma*p(\bfz|\bfx)$. Then as $\sigma\rightarrow0$, $q_\theta(\bfz)\rightarrow p(\bfz|\bfx)$.
+\end{proof}
 
 
 \subsection{Variance of gradient}
