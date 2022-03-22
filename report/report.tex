@@ -112,14 +112,6 @@ Though the majority of developments in the related literature are methodological
 
 \subsection{Introduction}
 
-\subsection{Notation}
-
-\todo $\phi_\sigma$ density of $\calN(0,\sigma^2\bfI_d)$. Overload distribution and density. $\lambda$ Lebesgue measure on $[0,1]$. Borel $\sigma$-algebra of $\bbR$ by $\calB$. $C^\beta(\calZ)$ $\beta$-H\"{o}lder. $\|\argdot\|_\infty$ supremum norm
-
-\subsection{Quality of approximation}
-
-\todo Due to time constraints on this project, we focus on the simpler question of, \textit{is the true posterior in the \uivi variational family?} \todo also quality. Using similar arguments from the work by \citet{Plummer:2021} for \nllvm, we show that under certain assumptions and particular choices of the reparameterization and mixing distribution, we can approximate the true posterior arbitrarily closely. For convenience, we assume that $p(z|x)$ is continuous. \todo: for simplicity, assume univariate latent variable
-
 \todo
 
 To approximate $p(z|x)$, \uivi posits the variational family $\calQ$ of distributions of the form
@@ -127,35 +119,48 @@ To approximate $p(z|x)$, \uivi posits the variational family $\calQ$ of distribu
 q_\theta(z) = \int q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \;.
 \]
 where the variational conditional $q_\theta(z|\bfeps)$ is reparameterizable and explicit, but the dependency on $\theta$ can be arbitrarily complex. \textsc{Uivi} also requires that the log-gradient $\nabla_z\log q_\theta(z|\bfeps)$ can be evaluated.
+
+
+\subsection{Notation}
+
+\todo $\phi_\sigma$ density of $\calN(0,\sigma^2\bfI_d)$. Overload distribution and density. $\lambda$ Lebesgue measure on $[0,1]$. Borel $\sigma$-algebra of $\bbR$ by $\calB$. $C^\beta(\calZ)$ $\beta$-H\"{o}lder. $\|\argdot\|_\infty$ supremum norm
+
+\subsection{Quality of approximation}
+
+\citet{Titsias:2019} empirically show that \uivi is seemingly able to match the implicit variational distribution to various synthetic datasets and is able to better approximate several models compared to \sivi. However, they do not provide theoretical guarantees nor quantify the quality of the \uivi approximation. In this section, we show that under certain assumptions and choices of the reparameterization and mixing distribution, \uivi is able to approximate the true posterior arbitrarily closely. We do so using similar arguments that \citet{Plummer:2021} made for non-linear latent variable models (\nllvm). Following their work, we assume that $z$ is a continuous, univariate latent variable. We leave other cases for future work due to time constraints on this project.
 \\
 
-Let $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for $i=1,\ldots,d$, $d\geq 1$. Let $q_\theta(z|\bfeps)$ be univariate Gaussian with mean $\mu_\theta(\bfeps)$ and variance $\sigma^2$ where $\mu_\theta:[0,1]^d\rightarrow\bbR$ is some arbitrarily complex function. This distribution satisfies the requirements of \uivi as it is reparameterizable through the form
+Consider the \uivi variational family induced by the following choices of the reparameterization and mixing distribution. We take a potentially multivariate mixing distribution of the form $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for $i=1,\ldots,d$, $d\geq 1$. Let the variational conditional $q_{\theta,\sigma}(z|\bfeps)$ be univariate Gaussian with mean $\mu_\theta(\bfeps)$ and variance $\sigma^2$ where $\mu_\theta:[0,1]^d\rightarrow\bbR$ is some arbitrarily complex function. Note that we keep the variational parameters $\theta$ and $\sigma$ separate for reasons that will be clear shortly. This distribution is reparameterizable through the form
 \[
-z = h_\theta(u;\bfeps) = \mu_\theta(\bfeps) + \sigma u
+z = h_{\theta,\sigma}(u;\bfeps) = \mu_\theta(\bfeps) + \sigma u
 \]
-where $u\sim \calN(0,1)$, and the log-density and its gradient is given by
+where $u\sim \calN(0,1)$. Furthermore, its log-density and its gradient are given by
 \begin{align*}
-\log q_\theta(z|\bfeps) &= -\frac{1}{2}\log\left(2\pi\sigma^2\right)-\frac{1}{2\sigma^2}\left(z-\mu_\theta(\bfeps)\right)^2 \;, \\
-\nabla_z \log q_\theta(z|\bfeps) &= -\frac{1}{\sigma^2}\left(z-\mu_\theta(\bfeps)\right) \;.
+\log q_{\theta,\sigma}(z|\bfeps) &= -\frac{1}{2}\log\left(2\pi\sigma^2\right)-\frac{1}{2\sigma^2}\left(z-\mu_\theta(\bfeps)\right)^2 \;, \\
+\nabla_z \log q_{\theta,\sigma}(z|\bfeps) &= -\frac{1}{\sigma^2}\left(z-\mu_\theta(\bfeps)\right) \;.
 \end{align*}
-The key insight of \citet{Plummer:2021} is that $q_\theta(z)$ has the form of a convolution with a Gaussian kernel, that is,
+The above properties suggest that the variational family induced by these choices satisfy the \uivi requirements. Note that the form of $h_{\theta,\sigma}$ also resembles the \nllvm studied by \citet{Plummer:2021}, which allows us to apply their results with slight modifications.
+\\
+
+To study the approximation capability of this model, the key insight of \citet{Plummer:2021} is that $q_{\theta,\sigma}(z)$ has the form of a convolution with a Gaussian kernel, that is,
 \begin{align*}
-q_\theta(z) &= \int_0^1 q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
+q_{\theta,\sigma}(z) &= \int_0^1 q_{\theta,\sigma}(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
 &= \int_0^1 \phi_\sigma\left(z-\mu_\theta(\bfeps)\right)\lambda(d\bfeps) \\
 &= \int_\bbR \phi_\sigma\left(z-t\right)\nu_{\mu_\theta}(dt)
 \end{align*}
-where $\nu_{\mu_\theta}(B)=\lambda\left(\mu_\theta^{-1}(B)\right)$, $B\in\calB$, is the image measure of $\lambda$ under $\mu_\theta$.
+where $\nu_{\mu_\theta}(B)=\lambda\left(\mu_\theta^{-1}(B)\right)$, $B\in\calB$, is the image measure of $\lambda$ under $\mu_\theta$. Using the approximation property of Gaussian convolutions, we characterize the relationship between the true posterior and the variational family through the following proposition.
 
-\begin{proposition}
-Let $\calQ_\sigma$ denote the variational family described above indexed by the standard deviation $\sigma$ of $q_\theta(z|\bfeps)$. Suppose that $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$. Then $p(z|x)\in\calQ_0$.
+\begin{proposition} \label{prop:membership}
+Let $\calQ_\sigma$ denote the variational family described above indexed by the standard deviation $\sigma$ of $q_{\theta,\sigma}(z|\bfeps)$. Suppose that $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$. Then $p(z|x)\in\calQ_0$.
 \end{proposition}
 \begin{proof}
-If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then $q_\theta(z) = \phi_\sigma*p(z|x)$. The result immediately follows using the property of Gaussian convolutions that $\phi_\sigma*p(z|x)\rightarrow p(z|x)$ pointwise as $\sigma\rightarrow0$.
+If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then $q_{\theta,\sigma}(z) = \phi_\sigma*p(z|x)$. The result immediately follows using the property of Gaussian convolutions that $\phi_\sigma*p(z|x)\rightarrow p(z|x)$ pointwise as $\sigma\rightarrow0$.
 \end{proof}
 
-\todo assuming that our optimization procedure is able to identify $\theta$
+Proposition~\ref{prop:membership} says that if the inverse CDF $F_{z|x}^{-1}$ is in the set of functions $\{\mu_\theta:\theta\in\Theta\}$ that can be modeled by $\mu_\theta$, then the true posterior $p(z|x)$ is a limiting member of the sequence of best approximations by this variational family as the bandwidth $\sigma$ of the Gaussian kernel shrinks. While this result suggests that the true posterior is not in the variation family for $\sigma>0$, it does imply that for any measure of error, we can choose a $\sigma$ such that the best approximation possible will be close to the true posterior within a desired tolerance level. What this result does not address is whether we are able to achieve the best approximation for a given $\sigma$ in practice. This depends on whether our optimization procedure is able to identify the correct $\theta$ such that $\mu_\theta=F_{z|x}^{-1}$. \todo future work?
+\\
 
-Then by using the approximation properties of Gaussian convolutions, we can characterize the quality of the approximation of $p(z|x)$ by $q(z)$.
+\todo Then by using the approximation properties of Gaussian convolutions, we can characterize the quality of the approximation of $p(z|x)$ by $q(z)$.
 \\
 
 To quantify the quality of the approximation, we must make assumptions about the smoothness of $p(z|x)$ and its support. Following \citet{Plummer:2021}, we make the following assumptions:
