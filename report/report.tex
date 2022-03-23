@@ -157,13 +157,12 @@ Let $\calQ_\sigma$ denote the variational family described above indexed by the 
 If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then $q_{\theta,\sigma}(z) = \phi_\sigma*p(z|x)$. The result immediately follows using the property of Gaussian convolutions that $\phi_\sigma*p(z|x)\rightarrow p(z|x)$ pointwise as $\sigma\rightarrow0$.
 \end{proof}
 
-Proposition~\ref{prop:membership} says that if the inverse CDF $F_{z|x}^{-1}$ is in the set of functions $\{\mu_\theta:\theta\in\Theta\}$ that can be modeled by $\mu_\theta$, then the true posterior $p(z|x)$ is a limiting member of the sequence of best approximations by this variational family as the bandwidth $\sigma$ of the Gaussian kernel shrinks. While this result suggests that the true posterior is not in the variation family for $\sigma>0$, it does imply that for any measure of error, we can choose a $\sigma$ such that the best approximation possible will be close to the true posterior within a desired tolerance level. What this result does not address is whether we are able to achieve the best approximation for a given $\sigma$ in practice. This depends on whether our optimization procedure is able to identify the correct $\theta$ such that $\mu_\theta=F_{z|x}^{-1}$. \todo future work?
+Proposition~\ref{prop:membership} says that if the inverse CDF $F_{z|x}^{-1}$ is in the set of functions $\{\mu_\theta:\theta\in\Theta\}$ that can be modeled by $\mu_\theta$, then the true posterior $p(z|x)$ is a limiting member of the sequence of best approximations by this variational family as the bandwidth $\sigma$ of the Gaussian kernel shrinks to zero. While this result suggests that the true posterior is not in the variation family for $\sigma>0$, it does imply that for any measure of error, we can choose $\sigma$ such that the best approximation will be close to the true posterior within a desired tolerance level. What this result does not address is whether we are able to achieve the best approximation for a given $\sigma$ in practice. This depends on whether our optimization procedure is able to identify the correct $\theta$ such that $\mu_\theta=F_{z|x}^{-1}$. \todo future work?
 \\
 
-\todo Then by using the approximation properties of Gaussian convolutions, we can characterize the quality of the approximation of $p(z|x)$ by $q(z)$.
-\\
+\todo the results below seem to be leading towards posterior contraction; proposition 2 isn't a result about $q_{\theta,\sigma}(z)$. Theorem 3.1 may still be relevant?
 
-To quantify the quality of the approximation, we must make assumptions about the smoothness of $p(z|x)$ and its support. Following \citet{Plummer:2021}, we make the following assumptions:
+We can further quantify the quality of the approximation by $q_{\theta,\sigma}(z)$ if we make assumptions about the smoothness of $p(z|x)$ and its support. Following \citet{Plummer:2021}, we make the following assumptions.
 
 \begin{assumption} \label{asp:p1}
 $\log p(z|x) \in C^\beta([0,1])$. Define $l_j(z_0) = \nabla_z^j\log p(z|x)\big|_{z=z_0}$ for $j=1,\ldots,r$ with $r=\lfloor\beta\rfloor$. For any $\beta>0$, there exists a constant $L>0$ such that for all $z_1\neq z_2$,
@@ -173,17 +172,18 @@ $\log p(z|x) \in C^\beta([0,1])$. Define $l_j(z_0) = \nabla_z^j\log p(z|x)\big|_
 \end{assumption}
 
 \begin{assumption} \label{asp:p2}
-$p(z|x)$ has compact support on $[0,1]$. There exists some interval $[z_1,z_2]\subset[0,1]$ such that $p(z|x)$ is non-decreasing and non-zero on $[0,z_1]$ and non-increasing on $[z_2,1]$.
+$p(z|x)$ has compact support on $[0,1]$. There exists some interval $[z_1,z_2]\subset[0,1]$ such that $p(z|x)$ is non-decreasing on $[0,z_1]$, non-zero on $[z_1,z_2]$, and non-increasing on $[z_2,1]$.
 \end{assumption}
 
-\todo explain assumptions
+Assumption~\ref{asp:p1} says that the derivatives of $\log p(z|x)$ up to order $r$ are $\beta$-H\"{o}lder continuous, implying that $\log p(z|x)$ is smooth to an extent. The proofs of \citet{Kruijer:2010} and \citet{Plummer:2021} rely heavily on the assumed smoothness in order to ensure that the error between the target distribution and an approximating convolution can be bounded. Assumption~\ref{asp:p2} says that the mass of $p(z|x)$ is concentrated in some compact interval of $z$ and that the tails of $p(z|x)$ outside this interval can be bounded above. This allows the approximation error in the tails to be bounded even as the convolution bandwidth shrinks, and so an analysis of the error only needs to focus on the closed interval in which the mass is concentrated. \citet{Plummer:2021} appear to specify an interval of $[0,1]$ for analytical convenience, whereas the intervals in similar assumptions made by \citet{Ghosal:1999} feature arbitrary finite endpoints.
+\\
 
-\todo Following \citet{Kruijer:2010} and \citet{Plummer:2021}, we can construct a sequence of functions $\{p_j\}_{j\geq0}$ through an iterative procedure where
+Under Assumptions~\ref{asp:p1} and \ref{asp:p2}, \citet{Plummer:2021} follow the work of \citet{Kruijer:2010} and consider a sequence of functions $\{p_j\}_{j\geq0}$ constructed through an iterative procedure given by
 \begin{align*}
 p_{j+1}(z|x) &= p(z|x) - \Delta_\sigma p_j(z|x) \;, \\
 \Delta_\sigma p_j(z|x) &= \phi_\sigma * p_j(z|x) - p_j(z|x)
 \end{align*}
-for $j\geq0$ and $p_0(z|x)=p(z|x)$.
+with $p_0(z|x)=p(z|x)$. The quality of the approximation is then characterized in terms of the error between the convolution \todo
 
 \begin{proposition}
 Suppose that $p(z|x)$ satisfies Assumptions~\ref{asp:p1} and \ref{asp:p2} with $\beta\in(2j,2j+2]$. Let $F_{z|x}$ be the cumulative distribution function of the posterior $p(z|x)$. \todo fix this If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then
