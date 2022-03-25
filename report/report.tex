@@ -129,8 +129,31 @@ where the variational conditional $q_\theta(z|\bfeps)$ is reparameterizable and 
 
 \todo overly simple example showing true posterior not in variational family?
 
-\citet{Titsias:2019} empirically show that \uivi is seemingly able to match the implicit variational distribution to various synthetic datasets and is able to better approximate several models compared to \sivi. However, they do not provide theoretical guarantees nor quantify the quality of the \uivi approximation. In this section, we show that under certain assumptions and choices of the reparameterization and mixing distribution, \uivi is able to approximate the true posterior arbitrarily closely. We do so using similar arguments that \citet{Plummer:2021} made for non-linear latent variable models (\nllvm). Following their work, we assume that $z$ is a continuous, univariate latent variable. We leave other cases for future work due to time constraints on this project.
+\citet{Titsias:2019} empirically show that \uivi is seemingly able to match the implicit variational distribution to various synthetic datasets and is able to better approximate several models compared to \sivi. However, they do not provide theoretical guarantees nor quantify the quality of the \uivi approximation. In this section, we show that \todo simple example where the true posterior distribution is not in variational family, and that under certain assumptions and choices of the reparameterization and mixing distribution, \uivi is able to approximate the true posterior arbitrarily closely. We do so using similar arguments that \citet{Plummer:2021} made for non-linear latent variable models (\nllvm). Following their work, we assume that $z$ is a continuous, univariate latent variable. We leave other cases for future work due to time constraints on this project.
+
+\subsubsection{Normal model example}
+
+We first illustrate through a simple example that using a hierarchical variational family does not magically expand the modeling capacity of the variational distribution, and that the choice of the reparameterization and mixing distributions are still important in realizing the potential of \uivi.
 \\
+
+Suppose that the posterior $p(z|x)$ is univariate Gaussian with mean $\mu_{Z|X}$ and known variance $\sigma_{Z|X}^2$. This may be the case, for example, when we have a Gaussian likelihood with latent mean $Z$ and known variance, and a conjugate Gaussian prior for $Z$. Suppose that we choose to approximate $p(z|x)$ by the \uivi variational family with
+\[
+z = h_\theta(u;\bfeps) = \theta + \bfeps + \sigma_{Z|X}u
+\]
+where $\bfeps$ and $u$ are independent standard normal random variables and $\theta$ is the variational parameter to optimize. Then it is easy to see that
+\begin{align*}
+q_\theta(z) &= \int_\bbR q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
+&= \int_\bbR \phi_{\sigma_{Z|X}}(\theta+\bfeps)\phi_1(\bfeps) \lambda(d\bfeps) \\
+&= \phi_{\sqrt{\sigma_{Z|X}^2+1}}(\theta) \;.
+\end{align*}
+In other words, our variational family is the set of univariate Gaussian distributions $\left\{\calN(\theta,\sigma_{Z|X}^2+1):\theta\in\bbR\right\}$. The true posterior distribution $\calN(\mu_{Z|X},\sigma_{Z|X}^2)$ is not in this variational family. The problem in this example is that our reparameterized distribution is too restrictive and misspecified. If we changed the reparameterization function to be
+\[
+z = h_{\bm{\theta}}'(u;\bfeps) = \theta_1 + \bfeps + \theta_2u
+\]
+where both $\theta_1$ and $\theta_2$ are learned parameters, then the new variational family corresponding to this reparameterization includes the true posterior distribution. While this example is very simple, it nicely illustrates that relying on the hierarchical structure alone is insufficient for setting up a flexible variational family.
+
+
+\subsubsection{Flexible variational family}
 
 Consider the \uivi variational family induced by the following choices of the reparameterization and mixing distribution. We take a potentially multivariate mixing distribution of the form $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for $i=1,\ldots,d$, $d\geq 1$. Let the variational conditional $q_{\theta,\sigma}(z|\bfeps)$ be univariate Gaussian with mean $\mu_\theta(\bfeps)$ and variance $\sigma^2$ where $\mu_\theta:[0,1]^d\rightarrow\bbR$ is some arbitrarily complex function. Note that we keep the variational parameters $\theta$ and $\sigma$ separate for reasons that will be clear shortly. This distribution is reparameterizable through the form
 \[
