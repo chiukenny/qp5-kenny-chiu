@@ -183,7 +183,13 @@ If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then $q_{\theta,\sigma}(
 \end{proof}
 
 Proposition~\ref{prop:membership} says that if the inverse CDF or quantile function $F_{z|x}^{-1}$ is in the set of functions $\{\mu_\theta:\theta\in\Theta\}$ that can be modeled by $\mu_\theta$, then the true posterior $p(z|x)$ is a limiting member of the sequence of best approximations by this variational family as the bandwidth $\sigma$ of the Gaussian kernel shrinks to zero. While this result suggests that the true posterior is not in the variation family for $\sigma>0$, it does imply that for any measure of error, we can choose $\sigma$ such that the best approximation will be close to the true posterior within a desired tolerance level. What this result does not address is whether we are able to achieve the best approximation for a given $\sigma$ in practice. This depends on whether our functional form $\mu_\theta$ is flexible enough such that $F_{z|x}^{-1}\in\{\mu_\theta:\theta\in\Theta\}$ and whether our optimization procedure is able to identify the correct $\theta$ such that $\mu_\theta=F_{z|x}^{-1}$.
-\\
+
+\subsubsection{Directions of future work for quantifying quality}
+
+\todo kde
+
+\todo universal approximation property of neural nets?
+
 
 \todo: problem boils down to learning the quantile function. 
 

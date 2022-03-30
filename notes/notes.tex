@@ -172,9 +172,66 @@ Dimensionality? Is this just a problem of convergence/complexity?
 \begin{itemize}
 
 \item
+Approximating posterior using Gaussian mixtures in high-dimensions.
+
+\item
+Reparameterization gradients and variances + other relevant references:
+\begin{itemize}
+\item
+\href{https://arxiv.org/pdf/1610.02287.pdf}{The Generalized Reparameterization Gradient} (Ruiz 2016)
+\item
+\href{https://proceedings.neurips.cc/paper/2017/file/325995af77a0e8b06d1204a171010b3a-Paper.pdf}{Reducing Reparameterization Gradient Variance} (Miller 2017)
+\item
+\href{https://arxiv.org/pdf/1809.10330.pdf}{Variance reduction properties of the reparameterization trick} (Xu 2018)
+\item
+\href{https://jmlr.org/papers/volume21/19-346/19-346.pdf}{Monte Carlo Gradient Estimation in Machine Learning} (Mohamed 2020)
+\item
+\href{http://www.svcl.ucsd.edu/courses/ece175/handouts/slides11.pdf}{EM Algorithm \& High Dimensional Data} (slides)
+\item
+BBVI, structured SIVI
+\end{itemize}
+
+\item
+Rao-Blackwellization:
+\begin{align*}
+L(\bfu,\bfeps,\bfeps') &= \widehat{\nabla}_\theta\calL(\theta;\bfu,\bfeps,\bfeps') \\
+L(\bfeps) &= \E_{\bfu,\bfeps'}[L(\bfu,\bfeps,\bfeps')] \\
+\var(L(\bfu,\bfeps,\bfeps')) &= \var(L(\bfeps)) + \E[(L(\bfu,\bfeps,\bfeps')-L(\bfeps))^2] \\
+& \geq \var(L(\bfeps))
+\end{align*}
+\todo Can we show lower bound depends on dimension $d$ of $\bfz$ somehow assuming that $q_\theta(\bfz)=p(\bfz|\bfx)$ (or very close, e.g., in convolution family), meaning that in high dimensions, variance is still high even at the optimum? Take $\bfeps$ to be of dimension $d$ and take mapping function as inverse CDF (this is just the posterior itself? i.e., $\var_{q_\theta}(\bfz)=\var_{p_{\bfz|\bfx}}(\bfz)$ with $\sigma=0$). Assume that $q_\theta(\bfz)\approx p(\bfx,\bfz)$ so that variances are approximately equal?
+
+\item
+\[
+\widehat{\nabla}_\theta\calL(\theta) = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} \right)\nabla_\theta h_\theta(\bfu_i;\bfeps_i)
+\]
+\todo Under above assumptions?
+\begin{align*}
+L(\bfeps) &= \E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_{\bfu,\bfeps'}\left[\nabla_\bfz\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps') \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&= \E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_\bfu\left[\nabla_\bfz\E_{\bfeps'}\left[\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps')\right] \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&\geq \E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_\bfu\left[\nabla_\bfz\log q_\theta(h_\theta(\bfu;\bfeps)) \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&= 0 \\
+\var(L(\bfeps)) &= \var\left(\E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right]\right) + \var\left(\E_\bfu\left[\nabla_\bfz\E_{\bfeps'}\left[\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps')\right] \nabla_\theta h_\theta(\bfu;\bfeps)\right]\right) \\
+&\quad - \cov\left(\E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right]\left(\E_\bfu\left[\nabla_\bfz\E_{\bfeps'}\left[\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps')\right]\nabla_\theta h_\theta(\bfu;\bfeps)\right]\right)^\T\right)
+\end{align*}
+\todo inequality of $L(\bfeps)$ not useful?
+
+\item
+\todo: start with finite mixture, i.e.,
+\begin{align*}
+q_\theta(\bfz) &= \sum_{i=1}^Kq_\theta(\bfz|\bfeps_k)q(\bfeps_k) \\
+\bfz &= \mu(\bfeps_k) + \sigma(\bfeps_k)\bfu \\
+\bfu &\sim \calN(0,1) \\
+\bfeps &\sim q(\bfeps)
+\end{align*}
+Show variance depends on $K$, and somehow $K$ is known to be exponential in $d$?
+
+\iffalse
+\item
 If mixing distribution is discrete, we may have label-switching problems, particularly with \mcmc? \citep{Chung:2004}
 
 Example: $q(\bfeps)=\mathrm{Bernoulli}(0.5)$. Then in normal reparameterization, we end up with parameters $\{\mu_1,\Sigma_1\}$, $\{\mu_2,\Sigma_2\}$. Can we estimate these following \elbo gradient or do we get degeneracy somehow?
+\fi
 
 \end{itemize}
 
