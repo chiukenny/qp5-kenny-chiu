@@ -182,7 +182,7 @@ Reparameterization gradients and variances + other relevant references:
 \item
 \href{https://proceedings.neurips.cc/paper/2017/file/325995af77a0e8b06d1204a171010b3a-Paper.pdf}{Reducing Reparameterization Gradient Variance} (Miller 2017)
 \item
-\href{https://arxiv.org/pdf/1809.10330.pdf}{Variance reduction properties of the reparameterization trick} (Xu 2018)
+\href{https://arxiv.org/pdf/1809.10330.pdf}{Variance reduction properties of the reparameterization trick} (Xu 2018): applies CLT over multiple samples so each partial derivative is approximately normal
 \item
 \href{https://jmlr.org/papers/volume21/19-346/19-346.pdf}{Monte Carlo Gradient Estimation in Machine Learning} (Mohamed 2020)
 \item
@@ -215,6 +215,9 @@ L(\bfeps) &= \E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\t
 &\quad - \cov\left(\E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right]\left(\E_\bfu\left[\nabla_\bfz\E_{\bfeps'}\left[\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps')\right]\nabla_\theta h_\theta(\bfu;\bfeps)\right]\right)^\T\right)
 \end{align*}
 \todo inequality of $L(\bfeps)$ not useful?
+\begin{align*}
+L(\bfeps) &= \E_\bfu\left[\nabla_\bfz\log p(h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_\bfu\left[\nabla_\bfz\E_{\bfeps'}\left[\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps')\right] \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+\end{align*}
 
 \item
 \todo: start with finite mixture, i.e.,
