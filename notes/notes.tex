@@ -182,7 +182,7 @@ Reparameterization gradients and variances + other relevant references:
 \item
 \href{https://proceedings.neurips.cc/paper/2017/file/325995af77a0e8b06d1204a171010b3a-Paper.pdf}{Reducing Reparameterization Gradient Variance} (Miller 2017)
 \item
-\href{https://arxiv.org/pdf/1809.10330.pdf}{Variance reduction properties of the reparameterization trick} (Xu 2018): applies CLT over multiple samples so each partial derivative is approximately normal
+\href{https://arxiv.org/pdf/1809.10330.pdf}{Variance reduction properties of the reparameterization trick} (Xu 2018): applies CLT over multiple samples so each partial derivative is approximately normal; Taylor expansions?
 \item
 \href{https://jmlr.org/papers/volume21/19-346/19-346.pdf}{Monte Carlo Gradient Estimation in Machine Learning} (Mohamed 2020)
 \item
@@ -199,7 +199,20 @@ L(\bfeps) &= \E_{\bfu,\bfeps'}[L(\bfu,\bfeps,\bfeps')] \\
 \var(L(\bfu,\bfeps,\bfeps')) &= \var(L(\bfeps)) + \E[(L(\bfu,\bfeps,\bfeps')-L(\bfeps))^2] \\
 & \geq \var(L(\bfeps))
 \end{align*}
-\todo Can we show lower bound depends on dimension $d$ of $\bfz$ somehow assuming that $q_\theta(\bfz)=p(\bfz|\bfx)$ (or very close, e.g., in convolution family), meaning that in high dimensions, variance is still high even at the optimum? Take $\bfeps$ to be of dimension $d$ and take mapping function as inverse CDF (this is just the posterior itself? i.e., $\var_{q_\theta}(\bfz)=\var_{p_{\bfz|\bfx}}(\bfz)$ with $\sigma=0$). Assume that $q_\theta(\bfz)\approx p(\bfx,\bfz)$ so that variances are approximately equal?
+\begin{align*}
+\var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) &= \E_{\bfu,\bfeps,\bfeps_{1:m}}\left[\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}') - \E_{\bfu,\bfeps,\bfeps_{1:m}}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right]\right)^2\right] \\
+&= \E_{\bfu,\bfeps,\bfeps_{1:m}}\left[\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}') - \E_{\bfu,\bfeps,\bfeps_{1:m}}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right]\right)^2\right] \\
+&= \var\left(L_\theta(\bfeps_{1:m}')\right)
+\end{align*}
+\begin{align*}
+\var\left(L_\theta(\bfeps_{1:m}')\right) &= \E_{\bfeps_{1:m}'}\left[\left(L_\theta(\bfeps_{1:m}')-\E_{\bfeps_{1:m}'}\left[L_\theta(\bfeps_{1:m}')\right]\right)^2\right] \\
+&= \E_{\bfeps_{1:m}'}\left[\left(L_\theta(\bfeps_{1:m}')-\E_{\bfu,\bfeps,\bfeps_{1:m}'}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right]\right)^2\right] \\
+&= \E_{\bfeps_{1:m}'}\left[\left(L_\theta(\bfeps_{1:m}')-L_\theta(\bfu,\bfeps,\bfeps_{1:m}')+L_\theta(\bfu,\bfeps,\bfeps_{1:m}')-\E_{\bfu,\bfeps,\bfeps_{1:m}'}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right]\right)^2\right] \\
+&= \E_{\bfeps_{1:m}'}\left[\left(L_\theta(\bfeps_{1:m}')-L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right)^2\right] \\
+&\quad - 2\E_{\bfeps_{1:m}'}\left[\left(L_\theta(\bfeps_{1:m}')-L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right)\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')-\E_{\bfu,\bfeps,\bfeps_{1:m}'}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right]\right)\right] \\
+&\quad + \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right)
+\end{align*}
+\todo Can we show lower bound depends on dimension $d$ of $\bfz$ somehow assuming that $q_\theta(\bfz)=p(\bfz|\bfx)$ (or very close, e.g., in convolution family), meaning that in high dimensions, variance is still high even at the optimum? Take $\bfeps$ to be of dimension $d$ and take mapping function as inverse CDF (this is just the posterior itself? i.e., $\var_{q_\theta}(\bfz)=\var_{p_{\bfz|\bfx}}(\bfz)$ with $\sigma=0$). Assume that $q_\theta(\bfz)\approx p(\bfz|\bfx)$ so that variances are approximately equal?
 
 \item
 \[
@@ -216,8 +229,41 @@ L(\bfeps) &= \E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\t
 \end{align*}
 \todo inequality of $L(\bfeps)$ not useful?
 \begin{align*}
-L(\bfeps) &= \E_\bfu\left[\nabla_\bfz\log p(h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_\bfu\left[\nabla_\bfz\E_{\bfeps'}\left[\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps')\right] \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+L(\bfeps) &= \E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_\bfu\left[\nabla_\bfz\E_{\bfeps'}\left[\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps')\right] \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&= \E_\bfu\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_\bfu\left[\nabla_\bfz\log q_\theta(h_\theta(\bfu;\bfeps)) \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&= \E_\bfu\left[\nabla_\bfz\log p(h_\theta(\bfu;\bfeps)|\bfx)\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_\bfu\left[\nabla_\bfz\log q_\theta(h_\theta(\bfu;\bfeps)) \nabla_\theta h_\theta(\bfu;\bfeps)\right]
 \end{align*}
+If have $\theta$ such that $q_\theta(\bfz)=p(\bfz|\bfx)$,
+\begin{align*}
+L(\bfeps_{1:m}') &= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps_j') \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\theta\log q_\theta(h_\theta(\bfu;\bfeps)|\bfeps_j')\right] \\
+&= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,h_\theta(\bfu;\bfeps))\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\theta\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right]
+\end{align*}
+Given $\theta$ and $\bfeps_j'$, second term is expected score but unless $q_\theta(\bfz|\bfeps')=p(\bfz|\bfx)$ ($p$ must be Gaussian), expectation is non-zero?
+\begin{align*}
+\var(L(\bfeps_{1:m}')_i) &= \frac{1}{m}\var\left(\E_{\bfu,\bfeps}\left[\nabla_{\theta_i}\log q_\theta(\bfz|\bfeps')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right]\right) \\
+&= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\nabla_{\theta_i}\log q_\theta(\bfz|\bfeps')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right]^2\right] \\
+&= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\left(\Sigma_\theta(\bfeps')^{-1}(h_\theta(\bfu;\bfeps)-\mu_\theta(\bfeps'))\right)^\T\nabla_{\theta_i} h_\theta(\bfu;\bfeps)\right]^2\right] \\
+&= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\left(\Sigma_\theta(\bfeps')^{-1}(\left(\mu_\theta(\bfeps)+\Sigma_\theta(\bfeps)\bfu\right)-\mu_\theta(\bfeps'))\right)^\T\nabla_{\theta_i} h_\theta(\bfu;\bfeps)\right]^2\right] \\
+&= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\left(\Sigma_\theta(\bfeps')^{-1}(\mu_\theta(\bfeps)-\mu_\theta(\bfeps'))+\Sigma_\theta(\bfeps')^{-1}\Sigma_\theta(\bfeps)\bfu\right)^\T\nabla_{\theta_i} h_\theta(\bfu;\bfeps)\right]^2\right]
+\end{align*}
+If $\Sigma$ independent of $\bfeps$, then
+\begin{align*}
+\var(L(\bfeps_{1:m}')_i) &= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\left(\Sigma^{-1}(\mu_\theta(\bfeps)-\mu_\theta(\bfeps'))+\bfu\right)^\T\nabla_{\theta_i} h_\theta(\bfu;\bfeps)\right]^2\right]
+\end{align*}
+Can simplify further if $\Sigma$ diagonal but is there a point?
+
+Notes:
+\begin{enumerate}
+\item
+$\bfeps'$ sampled from $q(\bfeps|\bfz)$ via MCMC, but variance w.r.t. $q(\bfeps)$ considered here?
+\item
+Dimension of $\bfz$ shows up as score
+\item
+$\E_{\bfu,\bfeps,\bfeps'}\left[\nabla_{\theta_i}\log q_\theta(\bfz|\bfeps')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right]=0$
+\item
+Variance is variance of expected score of potentially high-dimensional distribution where parameters are changing according to $\bfeps$ but map to parameters of distribution is fixed due to fixed $\theta$
+\end{enumerate}
 
 \item
 \todo: start with finite mixture, i.e.,

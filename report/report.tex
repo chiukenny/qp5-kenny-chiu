@@ -155,6 +155,8 @@ where both $\theta_1$ and $\theta_2$ are learned parameters, then the new variat
 
 \subsubsection{Flexible variational family}
 
+\todo dimensions of $\bfz$ and $\bfeps$
+
 Consider the \uivi variational family induced by the following choices of the reparameterization and mixing distribution. We take a potentially multivariate mixing distribution of the form $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for $i=1,\ldots,d$, $d\geq 1$. Let the variational conditional $q_{\theta,\sigma}(z|\bfeps)$ be univariate Gaussian with mean $\mu_\theta(\bfeps)$ and variance $\sigma^2$ where $\mu_\theta:[0,1]^d\rightarrow\bbR$ is some arbitrarily complex function. Note that we keep the variational parameters $\theta$ and $\sigma$ separate for reasons that will be clear shortly. This distribution is reparameterizable through the form
 \[
 z = h_{\theta,\sigma}(u;\bfeps) = \mu_\theta(\bfeps) + \sigma u
@@ -183,6 +185,8 @@ If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then $q_{\theta,\sigma}(
 \end{proof}
 
 Proposition~\ref{prop:membership} says that if the inverse CDF or quantile function $F_{z|x}^{-1}$ is in the set of functions $\{\mu_\theta:\theta\in\Theta\}$ that can be modeled by $\mu_\theta$, then the true posterior $p(z|x)$ is a limiting member of the sequence of best approximations by this variational family as the bandwidth $\sigma$ of the Gaussian kernel shrinks to zero. While this result suggests that the true posterior is not in the variation family for $\sigma>0$, it does imply that for any measure of error, we can choose $\sigma$ such that the best approximation will be close to the true posterior within a desired tolerance level. What this result does not address is whether we are able to achieve the best approximation for a given $\sigma$ in practice. This depends on whether our functional form $\mu_\theta$ is flexible enough such that $F_{z|x}^{-1}\in\{\mu_\theta:\theta\in\Theta\}$ and whether our optimization procedure is able to identify the correct $\theta$ such that $\mu_\theta=F_{z|x}^{-1}$.
+
+\todo: a bit about why rest of \citet{Plummer:2021} does not apply (posterior contraction)
 
 \subsubsection{Directions of future work for quantifying quality}
 
@@ -238,9 +242,28 @@ Suppose that $\mu_\theta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ and so $q_\theta(\bfz)=
 
 \subsection{Variance of gradient}
 
-\todo
+\todo high dimension
 
-label switching with mixtures?
+unbiased \elbo gradient estimator
+\[
+\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}') = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} \right)\nabla_\theta h_\theta(\bfu_i;\bfeps_i)
+\]
+$n=1$ used in practice, would like to study variance as $q_\theta(\bfz)$ approaches $p(\bfx,\bfz)$ but arbitrary function complicates analysis. Assume $q_\theta(\bfz|\bfeps)$ Gaussian
+
+Let $L_\theta(\bfu,\bfeps,\bfeps_{1:m}')=\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}')$ and let $L_\theta(\bfeps_{1:m}')=\E_{\bfu,\bfeps}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')|\bfeps_{1:m}'\right]$. Then following the idea underlying Rao-Blackwellization~\citep{Ranganath:2014},
+\[
+\var\left(L_\theta(\bfeps_{1:m}')\right) = \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) + \E_{\bfu,\bfeps,\bfeps'}\left[\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')-L_\theta(\bfeps_{1:m}')\right)^2\right]
+\]
+and so
+\[
+\var\left(L_\theta(\bfeps_{1:m}')\right) \leq \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) \;.
+\]
+The variance is lower bounded and we will see that the lower bound is more interpretable. We have
+\begin{align*}
+L_\theta(\bfeps_{1:m}') &= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)} \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\theta\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right] \;.
+\end{align*}
+Note that the first term is constant. Given a particular $\bfeps_j'$, the second term can be interpreted as the expected score function of a sampled Gaussian distribution evaluated at some fixed $\theta$. Suppose that $q(\bfz)\approx p(\bfx,\bfz)$ and so \todo $\theta$
 
 
 \subsection{Discussion}

@@ -79,10 +79,10 @@ elseif(strcmp(pxz.model, 'banana3D'))
 elseif(strcmp(pxz.model, 'bananaND'))
     % Parameters
     param.iters = 50000;            % Number of iterations
-    param.dim_noise = 1;            % Dimensionality of epsilon
+    param.dim_noise = 20;            % Dimensionality of epsilon
     
     % Model definition
-    dim_z = 10;                      % Dimensionality of z
+    dim_z = 20;                      % Dimensionality of z
     pxz.logdensity = @logdensityBananaND;
     pxz.inargs{1} = zeros(1,dim_z);          % Mean vector data
     Sigma = ones(dim_z)*0.9 + diag(ones(dim_z,1))*0.1;
