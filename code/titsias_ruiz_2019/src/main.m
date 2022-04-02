@@ -52,7 +52,7 @@ if(strcmp(pxz.model, 'banana'))
     param.dim_noise = 1;            % Dimensionality of epsilon
     
     % Model definition
-    dim_z = 2;                      % Dimensionality of z
+    dim_z = 1;                      % Dimensionality of z
     pxz.logdensity = @logdensityBanana2D;
     pxz.inargs{1} = [0 0];          % Mean vector data
     Sigma = [1 0.9; 0.9 1];
@@ -79,10 +79,10 @@ elseif(strcmp(pxz.model, 'banana3D'))
 elseif(strcmp(pxz.model, 'bananaND'))
     % Parameters
     param.iters = 50000;            % Number of iterations
-    param.dim_noise = 20;            % Dimensionality of epsilon
+    param.dim_noise = 1;            % Dimensionality of epsilon
     
     % Model definition
-    dim_z = 20;                      % Dimensionality of z
+    dim_z = 50;                      % Dimensionality of z
     pxz.logdensity = @logdensityBananaND;
     pxz.inargs{1} = zeros(1,dim_z);          % Mean vector data
     Sigma = ones(dim_z)*0.9 + diag(ones(dim_z,1))*0.1;
@@ -362,12 +362,14 @@ end
 
 % Plot smoothed ELBO
 figure;
-smth = 100;
+smth = 50;
 smoothed_stochasticBound = tsmovavg(out.stochasticBound, 's', smth, 2);
-plot(cumsum(out.telapsed), smoothed_stochasticBound, 'r', 'linewidth', 0.5);
+%plot(cumsum(out.telapsed), smoothed_stochasticBound, 'r', 'linewidth', 0.5);
+plot(linspace(0,param.iters,length(smoothed_stochasticBound)), smoothed_stochasticBound, 'r', 'linewidth', 0.25);
+ylim([min(smoothed_stochasticBound(250:end))-1,0]);
 title('Smoothed ELBO')
 name = [param.outdir pxz.dataName '_' param.method '_ELBO_movavg' num2str(smth)];
-figurepdf(8, 5);
+figurepdf(9, 5);
 print('-dpdf', [name '.pdf']);
 
 % Other plots

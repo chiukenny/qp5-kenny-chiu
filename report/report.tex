@@ -108,7 +108,7 @@ Though the developments in the related literature are mostly methodological, the
 \end{abstract}
 \vspace{2em}
 
-\subsection{Introduction}
+\subsection{Introduction} \label{sec:introduction}
 
 \todo
 
@@ -117,30 +117,33 @@ To approximate $p(z|x)$, \uivi posits the variational family $\calQ$ of distribu
 q_\theta(z) = \int q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \;.
 \]
 where the variational conditional $q_\theta(z|\bfeps)$ is reparameterizable and explicit, but the dependency on $\theta$ can be arbitrarily complex. \textsc{Uivi} also requires that the log-gradient $\nabla_z\log q_\theta(z|\bfeps)$ can be evaluated.
+\todo \elbo
 
-
-\subsection{Notation}
-
-\todo $\phi_\sigma$ density of $\calN(0,\sigma^2\bfI_d)$. Overload distribution and density. $\lambda$ Lebesgue measure on $[0,1]$. Borel $\sigma$-algebra of $\bbR$ by $\calB$. 
-
-\todo delete $C^\beta(\calZ)$ $\beta$-H\"{o}lder. $\|\argdot\|_\infty$ supremum norm
-
-\subsection{Quality of approximation}
-
-\todo overly simple example showing true posterior not in variational family?
-
-\citet{Titsias:2019} empirically show that \uivi is seemingly able to match the implicit variational distribution to various synthetic datasets and is able to better approximate several models compared to \sivi. However, they do not provide theoretical guarantees nor quantify the quality of the \uivi approximation. In this section, we show that \todo simple example where the true posterior distribution is not in variational family, and that under certain assumptions and choices of the reparameterization and mixing distribution, \uivi is able to approximate the true posterior arbitrarily closely. We do so using similar arguments that \citet{Plummer:2021} made for non-linear latent variable models (\nllvm). Following their work, we assume that $z$ is a continuous, univariate latent variable. We leave other cases for future work due to time constraints on this project.
-
-\subsubsection{Normal model example}
-
-We first illustrate through a simple example that using a hierarchical variational family does not magically expand the modeling capacity of the variational distribution, and that the choice of the reparameterization and mixing distributions are still important in realizing the potential of \uivi.
+In this project, we discuss our attempts at analyzing the theoretical performance of \uivi. Although we are unable to make much progress due to time constraints, we at least suggest possible directions for continuing what is started in this work that are most likely to be fruitful.
 \\
 
-Suppose that the posterior $p(z|x)$ is univariate Gaussian with mean $\mu_{Z|X}$ and known variance $\sigma_{Z|X}^2$. This may be the case, for example, when we have a Gaussian likelihood with latent mean $Z$ and known variance, and a conjugate Gaussian prior for $Z$. Suppose that we choose to approximate $p(z|x)$ by the \uivi variational family with
+This report is organized as follows: Section~\ref{sec:notation} introduces the notation used throughout this report; Section~\ref{sec:approximation} discusses our characterization of the quality of the \uivi approximation for a particular choice of the variational conditional and mixing distributions; Section~\ref{sec:variance} describes our attempts of analyzing the variance of the \elbo gradient in \uivi; and Section~\ref{sec:discussion} summarizes our findings and the possible directions of future work.
+
+
+\subsection{Notation} \label{sec:notation}
+
+We briefly introduce other notation used in this report in addition to the notation introduced in Section~\ref{sec:introduction}. Let $\lambda$ denote the Lebesgue measure on the specified support of the mixing variable $\bfeps$. Let $\calB$ denote the Borel $\sigma$-algebra of $\bbR^d$ where $d$ is the dimension of the latent variable $\bfz$. Let $\phi_\sigma$ denote the density of a $\calN(0,\sigma^2\bfI_d)$ distribution. Note that we often denote both a distribution and its density by $q$ and let the context distinguish between which one is referred to. For densities $f$ and $q$, let $f*q(z)=\int_\calX f(z-x)q(x)dx$ denote the convolution of $f$ and $q$.
+
+
+\subsection{Quality of approximation} \label{sec:approximation}
+
+\citet{Titsias:2019} empirically show that \uivi is seemingly able to match the implicit variational distribution to various synthetic datasets and is able to better approximate several models compared to \sivi. However, they do not provide theoretical guarantees nor quantify the quality of the \uivi approximation. In this section, we aim to address this limitation of the paper by discussing particular cases of when \uivi is able or unable to theoretically recover the true distribution. We first show a simple example where the true posterior distribution is not in the variational family due to misspecification. We then show that under certain assumptions and choices of the reparameterization and mixing distribution, \uivi is able to approximate the true posterior arbitrarily closely.
+
+\subsubsection{Normal-normal example}
+
+We first illustrate through a simple example that using a hierarchical variational family does not magically expand the modeling capacity of the variational distribution, and that the choice of the conditional and mixing distributions are still important in realizing the potential of \uivi.
+\\
+
+Consider a univariate Gaussian posterior distribution $p(z|x)$ with mean $\mu_{Z|X}$ and known variance $\sigma_{Z|X}^2$. This is the case, for example, when we have a Gaussian likelihood with latent mean $Z$ and known variance, and a conjugate Gaussian prior for $Z$. Suppose that we choose to approximate $p(z|x)$ by the \uivi variational family with the variational conditional reparameterized as
 \[
 z = h_\theta(u;\bfeps) = \theta + \bfeps + \sigma_{Z|X}u
 \]
-where $\bfeps$ and $u$ are independent standard normal random variables and $\theta$ is the variational parameter to optimize. Then it is easy to see that
+where $\bfeps$ and $u$ are independent standard normal random variables and $\theta$ is the variational parameter to optimize. This reparameterization corresponds to $\mu_\theta(\bfeps)=\theta+\bfeps$ being a simple additive function. Then it is easy to see that
 \begin{align*}
 q_\theta(z) &= \int_\bbR q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
 &= \int_\bbR \phi_{\sigma_{Z|X}}(\theta+\bfeps)\phi_1(\bfeps) \lambda(d\bfeps) \\
@@ -150,52 +153,104 @@ In other words, our variational family is the set of univariate Gaussian distrib
 \[
 z = h_{\bm{\theta}}'(u;\bfeps) = \theta_1 + \bfeps + \theta_2u
 \]
-where both $\theta_1$ and $\theta_2$ are learned parameters, then the new variational family corresponding to this reparameterization includes the true posterior distribution. While this example is very simple, it nicely illustrates that relying on the hierarchical structure alone is insufficient for setting up a flexible variational family.
+where both $\theta_1$ and $\theta_2$ are learned parameters, then the new variational family corresponding to this reparameterization includes the true posterior distribution. While this example is very simple, it well-illustrates that relying on the hierarchical structure alone is insufficient for setting up a flexible variational family.
 
 
 \subsubsection{Flexible variational family}
 
-\todo dimensions of $\bfz$ and $\bfeps$
+We now show that under certain assumptions and a particular choice of the conditional and mixing distributions, the induced \uivi variational family can be set to include a distribution that approximates the true distribution arbitrarily closely. We do so using similar arguments that \citet{Plummer:2021} made for non-linear latent variable models (\nllvm). Following their work, we assume that $\bfz\in\bbR^d$.
+\\
 
-Consider the \uivi variational family induced by the following choices of the reparameterization and mixing distribution. We take a potentially multivariate mixing distribution of the form $q(\bfeps)=\prod_{i=1}^dq(\bfeps_i)$ where $q(\bfeps_i)=\mathrm{Unif}(0,1)$ for $i=1,\ldots,d$, $d\geq 1$. Let the variational conditional $q_{\theta,\sigma}(z|\bfeps)$ be univariate Gaussian with mean $\mu_\theta(\bfeps)$ and variance $\sigma^2$ where $\mu_\theta:[0,1]^d\rightarrow\bbR$ is some arbitrarily complex function. Note that we keep the variational parameters $\theta$ and $\sigma$ separate for reasons that will be clear shortly. This distribution is reparameterizable through the form
+Consider a multivariate mixing distribution of the form $q(\bfeps)=\prod_{i=1}^dq(\eps_i)$ where $q(\eps_i)=\mathrm{Unif}(0,1)$ for $i=1,\ldots,d$. Let the variational conditional $q_{\bftheta,\sigma}(\bfz|\bfeps)$ be multivariate Gaussian with mean $\mu_{\bftheta}(\bfeps)$ and covariance matrix $\Sigma_{\sigma}=\sigma^2\bfI_d$ where $\mu_\bftheta:[0,1]^d\rightarrow\bbR^d$ is some arbitrarily complex function. Note that we keep the variational parameters $\bftheta$ and $\sigma$ separate for reasons that will be clear shortly. This distribution is reparameterizable through the form
 \[
-z = h_{\theta,\sigma}(u;\bfeps) = \mu_\theta(\bfeps) + \sigma u
+\bfz = h_{\bftheta,\bfsigma}(\bfu;\bfeps) = \mu_\bftheta(\bfeps) + \Sigma_{\sigma}^{-\frac{1}{2}}\bfu
 \]
-where $u\sim \calN(0,1)$. Furthermore, its log-density and its gradient are given by
+where $\bfu\sim \calN(0,\bfI_d)$. Furthermore, the log-density of this distribution and its gradient are both evaluatable and so this distribution satisfies the \uivi requirements.
+\iffalse
+Furthermore, its log-density and its gradient are given by
 \begin{align*}
 \log q_{\theta,\sigma}(z|\bfeps) &= -\frac{1}{2}\log\left(2\pi\sigma^2\right)-\frac{1}{2\sigma^2}\left(z-\mu_\theta(\bfeps)\right)^2 \;, \\
 \nabla_z \log q_{\theta,\sigma}(z|\bfeps) &= -\frac{1}{\sigma^2}\left(z-\mu_\theta(\bfeps)\right) \;.
 \end{align*}
-The above properties suggest that the variational family induced by these choices satisfy the \uivi requirements. Note that the form of $h_{\theta,\sigma}$ also resembles the \nllvm studied by \citet{Plummer:2021}, which allows us to apply their results with slight modifications.
+The above properties suggest that the variational family induced by these choices satisfy the \uivi requirements.
+\fi
+Note that this choice of $h_{\bftheta,\sigma}$ resembles the \nllvm studied by \citet{Plummer:2021}, which allows us to apply their results with slight modifications.
 \\
 
-To study the approximation capability of this model, the key insight of \citet{Plummer:2021} is that $q_{\theta,\sigma}(z)$ has the form of a convolution with a Gaussian kernel, that is,
+To study the approximation capabilities of the \nllvm, the key insight of \citet{Plummer:2021} is that the marginal density of the reparameterized variable induced by the \nllvm has the form of a convolution with a Gaussian kernel. This insight applies to our \uivi model as well where $q_{\bftheta,\sigma}(\bfz)$ can be rewritten as
 \begin{align*}
-q_{\theta,\sigma}(z) &= \int_0^1 q_{\theta,\sigma}(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
-&= \int_0^1 \phi_\sigma\left(z-\mu_\theta(\bfeps)\right)\lambda(d\bfeps) \\
-&= \int_\bbR \phi_\sigma\left(z-t\right)\nu_{\mu_\theta}(dt)
+q_{\bftheta,\sigma}(\bfz) &= \int_{[0,1]^m} q_{\bftheta,\sigma}(\bfz|\bfeps)q(\bfeps)\lambda(d\bfeps) \\
+&= \int_{[0,1]^m} \phi_\sigma\left(\bfz-\mu_\bftheta(\bfeps)\right)\lambda(d\bfeps) \\
+&= \int_{\bbR^d} \phi_\sigma\left(\bfz-\bft\right)\nu_{\mu_\bftheta}(d\bft)
 \end{align*}
-where $\nu_{\mu_\theta}(B)=\lambda\left(\mu_\theta^{-1}(B)\right)$, $B\in\calB$, is the image measure of $\lambda$ under $\mu_\theta$. Using the approximation property of Gaussian convolutions, we characterize the relationship between the true posterior and the variational family through the following proposition.
+with $\nu_{\mu_\bftheta}(B)=\lambda\left(\mu_\bftheta^{-1}(B)\right)$, $B\in\calB$, being the image measure of $\lambda$ under $\mu_\bftheta$. Using the approximation property of convolutions, we characterize the relationship between the true posterior distribution and the variational family through the following proposition.
 
 \begin{proposition} \label{prop:membership}
-Let $\calQ_\sigma$ denote the variational family described above indexed by the standard deviation $\sigma$ of $q_{\theta,\sigma}(z|\bfeps)$. Suppose that $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$. Then $p(z|x)\in\calQ_0$.
+Let $\calQ_\sigma$ denote the variational family described above indexed by the standard deviation $\sigma$ of $q_{\bftheta,\sigma}(\bfz|\bfeps)$. Suppose that $\mu_\bftheta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ for all $\bft\in[0,1]^d$. Then $p(\bfz|\bfx)\in\calQ_0$ (the limiting family as $\sigma\rightarrow0$).
 \end{proposition}
 \begin{proof}
-If $\mu_\theta(t)=F_{z|x}^{-1}(t)$ for all $t\in[0,1]$, then $q_{\theta,\sigma}(z) = \phi_\sigma*p(z|x)$. The result immediately follows using the property of Gaussian convolutions that $\phi_\sigma*p(z|x)\rightarrow p(z|x)$ pointwise as $\sigma\rightarrow0$.
+If $\mu_\bftheta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ for all $\bft\in[0,1]$, then $q_{\bftheta,\sigma}(\bfz) = \phi_\sigma*p(\bfz|\bfx)$ by the change of variables argument above. The result then immediately follows from the consistency property of convolutions that $\int_\calZ\left|\phi_\sigma*p(\bfz|\bfx) - p(\bfz|\bfx)\right|d\bfz\rightarrow0$ as $\sigma\rightarrow0$~\citep{Devroye:2001}.
 \end{proof}
 
-Proposition~\ref{prop:membership} says that if the inverse CDF or quantile function $F_{z|x}^{-1}$ is in the set of functions $\{\mu_\theta:\theta\in\Theta\}$ that can be modeled by $\mu_\theta$, then the true posterior $p(z|x)$ is a limiting member of the sequence of best approximations by this variational family as the bandwidth $\sigma$ of the Gaussian kernel shrinks to zero. While this result suggests that the true posterior is not in the variation family for $\sigma>0$, it does imply that for any measure of error, we can choose $\sigma$ such that the best approximation will be close to the true posterior within a desired tolerance level. What this result does not address is whether we are able to achieve the best approximation for a given $\sigma$ in practice. This depends on whether our functional form $\mu_\theta$ is flexible enough such that $F_{z|x}^{-1}\in\{\mu_\theta:\theta\in\Theta\}$ and whether our optimization procedure is able to identify the correct $\theta$ such that $\mu_\theta=F_{z|x}^{-1}$.
+Proposition~\ref{prop:membership} says that if the inverse CDF or quantile function $F_{\bfz|\bfx}^{-1}$ is in the set of functions $\{\mu_\bftheta:\bftheta\in{\bm\Theta}\}$ that can be modeled by $\mu_\bftheta$, then the true posterior $p(\bfz|\bfx)$ is a limiting member of the sequence of best approximations by the variational family as the bandwidth $\sigma$ of the Gaussian kernel shrinks to zero. While this result also implies that the true posterior is not in the variation family for any $\sigma>0$, it suggests that for any measure of error, we can choose $\sigma$ such that the best approximation will be close to the true posterior within a desired tolerance level.
+\\
 
-\todo: a bit about why rest of \citet{Plummer:2021} does not apply (posterior contraction)
+What is not addresssed by Proposition~\ref{prop:membership} is the question of whether we are able to achieve the best approximation for a given $\sigma$ in practice. This depends on the functional form of $\mu_\bftheta$ being flexible enough such that $F_{\bfz|\bfx}^{-1}\in\{\mu_\bftheta:\bftheta\in{\bm\Theta}\}$ and whether our optimization procedure is able to identify the correct $\bftheta$ such that $\mu_\bftheta=F_{\bfz|\bfx}^{-1}$. At least with regards to the existence of sufficiently flexible $\mu_\bftheta$, a universal approximation theorem (Theorem~3.1) in the work by \citet{Daniels:2010} states that for any continuous monotone nondecreasing function on a compact subset of $\bbR^d$, there exists a feedforward neural network with at most $d$ hidden layers such that the pointwise error when approximating the function is within a desired tolerance.
+\\
+
+We note that the work by \citet{Plummer:2021} includes other results that may be of interest--namely, a posterior contraction result for \nllvm. However, the results do not appear to generalize easily to \sivi and \uivi. This is because the implicit model in \nllvm is on the observable variable $\bfx$ as opposed to the latent variable $\bfz$ in \sivi and \uivi. Ultimately, it is also probably more interesting to understand the convergence of the \uivi optimization procedure to the true posterior distribution $p(\bfz|\bfx)$ for a fixed $\bfx$ rather than how the approximation changes with increasing amounts of observations.
+
 
 \subsubsection{Directions of future work for quantifying quality}
 
-\todo kde
+As mentioned in the previous section, Proposition~\ref{prop:membership} does not address the question of how \textit{good} the quality of the \uivi approximation is, and the other results of \citet{Plummer:2021} for \nllvm do not generalize to \uivi. We briefly discuss some possible approaches that may allow quantifying the quality of the convolution family approximation based on ideas from the previous section. We leave further exploration of these ideas for future work due to time constraints on this project.
+\\
 
-\todo universal approximation property of neural nets?
+One idea is to characterize the approximation quality in terms of the error from the Gaussian convolution for a given $\sigma>0$. Such a result would quantify the error in the best approximation possible for a particular $\sigma$. The structure of such a result would look similar to those presented for kernel density estimation (\citep[Section~9.5, Chapter~11]{Devroye:2001}) where the ratio of expected empirical error and the theoretical error for some bandwidth is upper bounded by some constant that depends on the true distribution. Being able to do so would likely require additional assumptions on the smoothness of $p(\bfz|\bfx)$ similar to those made by \citet{Plummer:2021} on the true density in their analysis of \nllvm.
+\\
+
+Another idea is to characterize the quality in terms of the error from estimating the quantile function with $\mu_\bftheta$ for a particular $\bftheta$. Such a result would be necessary in obtaining a convergence rate of the \uivi optimization procedure for this family. However, this approach appears to be more challenging than the previous idea in that smoothness assumptions will need to be made on the inverse CDF and the form of the function $\mu_\bftheta$ will need to be specified. \todo A characterization of the convergence rate to the best approximation would likely require some combination of these two ideas.
 
 
-\todo: problem boils down to learning the quantile function. 
+\subsection{Variance of gradient} \label{sec:variance}
+
+\todo high dimension
+
+unbiased \elbo gradient estimator
+\[
+\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}') = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} \right)\nabla_\theta h_\theta(\bfu_i;\bfeps_i)
+\]
+$n=1$ used in practice, would like to study variance as $q_\theta(\bfz)$ approaches $p(\bfx,\bfz)$ but arbitrary function complicates analysis. Assume $q_\theta(\bfz|\bfeps)$ Gaussian
+
+Let $L_\theta(\bfu,\bfeps,\bfeps_{1:m}')=\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}')$ and let $L_\theta(\bfeps_{1:m}')=\E_{\bfu,\bfeps}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')|\bfeps_{1:m}'\right]$. Then following the idea underlying Rao-Blackwellization~\citep{Ranganath:2014},
+\[
+\var\left(L_\theta(\bfeps_{1:m}')\right) = \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) + \E_{\bfu,\bfeps,\bfeps'}\left[\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')-L_\theta(\bfeps_{1:m}')\right)^2\right]
+\]
+and so
+\[
+\var\left(L_\theta(\bfeps_{1:m}')\right) \leq \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) \;.
+\]
+The variance is lower bounded and we will see that the lower bound is more interpretable. We have
+\begin{align*}
+L_\theta(\bfeps_{1:m}') &= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)} \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
+&= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\theta\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right] \;.
+\end{align*}
+Note that the first term is constant. Given a particular $\bfeps_j'$, the second term can be interpreted as the expected score function of a sampled Gaussian distribution evaluated at some fixed $\theta$. Suppose that $q(\bfz)\approx p(\bfx,\bfz)$ and so \todo $\theta$
+
+
+\subsection{Discussion} \label{sec:discussion}
+
+
+\newpage
+
+
+\bibliographystyle{plainnat}
+\bibliography{qp}
+
+\end{document}
+
+
+
 
 \subsubsection{\todo to delete}
 
@@ -238,41 +293,3 @@ for non-negative constants $c_i$, $i=1,\ldots,r+1$ and $z\in[0,1]$.
 \begin{proof}
 Suppose that $\mu_\theta(\bft)=F_{\bfz|\bfx}^{-1}(\bft)$ and so $q_\theta(\bfz)=\phi_\sigma*p(\bfz|\bfx)$. Then as $\sigma\rightarrow0$, $q_\theta(\bfz)\rightarrow p(\bfz|\bfx)$.
 \end{proof}
-
-
-\subsection{Variance of gradient}
-
-\todo high dimension
-
-unbiased \elbo gradient estimator
-\[
-\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}') = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} \right)\nabla_\theta h_\theta(\bfu_i;\bfeps_i)
-\]
-$n=1$ used in practice, would like to study variance as $q_\theta(\bfz)$ approaches $p(\bfx,\bfz)$ but arbitrary function complicates analysis. Assume $q_\theta(\bfz|\bfeps)$ Gaussian
-
-Let $L_\theta(\bfu,\bfeps,\bfeps_{1:m}')=\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}')$ and let $L_\theta(\bfeps_{1:m}')=\E_{\bfu,\bfeps}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')|\bfeps_{1:m}'\right]$. Then following the idea underlying Rao-Blackwellization~\citep{Ranganath:2014},
-\[
-\var\left(L_\theta(\bfeps_{1:m}')\right) = \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) + \E_{\bfu,\bfeps,\bfeps'}\left[\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')-L_\theta(\bfeps_{1:m}')\right)^2\right]
-\]
-and so
-\[
-\var\left(L_\theta(\bfeps_{1:m}')\right) \leq \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) \;.
-\]
-The variance is lower bounded and we will see that the lower bound is more interpretable. We have
-\begin{align*}
-L_\theta(\bfeps_{1:m}') &= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)} \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
-&= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\theta\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right] \;.
-\end{align*}
-Note that the first term is constant. Given a particular $\bfeps_j'$, the second term can be interpreted as the expected score function of a sampled Gaussian distribution evaluated at some fixed $\theta$. Suppose that $q(\bfz)\approx p(\bfx,\bfz)$ and so \todo $\theta$
-
-
-\subsection{Discussion}
-
-
-\newpage
-
-
-\bibliographystyle{plainnat}
-\bibliography{qp}
-
-\end{document}
