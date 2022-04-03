@@ -215,7 +215,7 @@ What is not addresssed by Proposition~\ref{prop:membership} is the question of w
 We note that the work by \citet{Plummer:2021} includes other results that may be of interest--namely, a posterior contraction result for \nllvm. However, the results do not appear to generalize easily to \sivi and \uivi. This is because the implicit model in \nllvm is on the observable variable $\bfx$ as opposed to the latent variable $\bfz$ in \sivi and \uivi. Ultimately, it is also probably more interesting to understand the convergence of the \uivi optimization procedure to the true posterior distribution $p(\bfz|\bfx)$ for a fixed $\bfx$ rather than how the approximation changes with increasing amounts of observations.
 
 
-\subsubsection{Directions of future work for quantifying quality}
+\subsubsection{Directions of future work for quantifying quality} \label{sec:future:approximation}
 
 As mentioned in the previous section, Proposition~\ref{prop:membership} does not address the question of how \textit{good} the quality of the \uivi approximation is, and the other results of \citet{Plummer:2021} for \nllvm do not generalize to \uivi. We briefly discuss some possible approaches that may allow quantifying the quality of the convolution family approximation based on ideas from the previous section. We leave further exploration of these ideas for future work due to time constraints on this project.
 \\
@@ -282,7 +282,28 @@ At this point, we find that it is difficult to proceed without further assumptio
 Though we are unable to progress further due to time constraints on this project, we can reason a few (perhaps obvious) conclusions from the above derivations. The lower bound to the variance of the original gradient estimator decreases as the number of samples $m$ increases, which decreases the variation due to sampling the individual Gaussians. Also, the effect of the dimension of $\bfz$ can only come into play in this Gaussian sampling through the (squared) score. If the score function depends on $d$ at a rate greater than that of $O(\sqrt{d})$, then $m$ needs to scale faster than linear with $d$ in order to maintain the lower bound. Otherwise, $m$ can compensate for increases in dimension by scaling linearly with $d$.
 
 
+\subsubsection{Experiments}
+
+\todo unclear why results are
+
+increasing dimensions \elbo decreases but looks relatively stable
+
+increasing number of \mcmc samples, variances does not decrease
+
+increasing $K$ in \sivi, variances does not decrease
+
+\todo collect variance?
+
+
 \subsection{Discussion} \label{sec:discussion}
+
+In this project, we attempted to analyze the theoretical performance of \uivi. Through a simple example, we showed that relying solely on the hierarchical form of the variational distribution is insufficient for obtaining a flexible variational family. We also showed that for a particular choice of the variational conditional and mixing distributions, the variational distribution in \uivi has an equivalent form as a Gaussian convolution. Then under the assumption that the map that transforms the noise is able to learn the inverse CDF of the posterior, we proved that the true posterior distribution is a member of the limiting variational family as the kernel bandwidth goes to zero.
+\\
+
+We also attempted to analyze the variance of the \elbo gradient estimator. We discussed the intuition that \uivi can be seen as estimating the \elbo gradient using sampled Gaussian distributions and explained why this may be problematic in high-dimensional problems. We then derived a lower bound of the estimator variance that may be useful if additional assumptions are imposed on the implicit functions. \todo experiments
+\\
+
+The work in this project has been mainly exploratory, though a few ideas have been identified that may be of interest for follow-up work. The work by \citet{Plummer:2021} provides an interesting starting point for the theoretical analyses of implicit variational inference methods. While we have applied their approach to show the capacity of the variational family in \uivi as an initial result, the theory can likely be pushed further as discussed in Section~\ref{sec:future:approximation}. In terms of the variance of the \elbo gradient estimator, our result is incomplete and there is still much work to be done. \todo experiments
 
 
 \newpage

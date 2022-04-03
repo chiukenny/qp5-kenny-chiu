@@ -52,7 +52,7 @@ if(strcmp(pxz.model, 'banana'))
     param.dim_noise = 1;            % Dimensionality of epsilon
     
     % Model definition
-    dim_z = 1;                      % Dimensionality of z
+    dim_z = 2;                      % Dimensionality of z
     pxz.logdensity = @logdensityBanana2D;
     pxz.inargs{1} = [0 0];          % Mean vector data
     Sigma = [1 0.9; 0.9 1];
