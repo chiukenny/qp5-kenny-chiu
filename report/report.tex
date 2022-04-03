@@ -40,7 +40,7 @@ The method that precedes \uivi and that was proposed to address the challenges o
 
 \subsection{Current work} \label{an:uivi}
 
-\citet{Titsias:2019} propose \uivi as an alternative to \sivi that directly maximizes the \elbo as an objective rather than a surrogate lower bound. The motivation for \uivi is that directly optimizing the \elbo objective should be more efficient than optimizing a surrogate and therefore should result in faster convergence to the optimal variational approximation. \textsc{Uivi} allows for an \elbo objective by rewriting the \elbo gradient in terms of two expectations. One expectation is easily estimated using Monte Carlo samples, while the other expectation is over an inverse conditional from which \uivi draws samples using Markov chain Monte Carlo (\mcmc).
+\citet{Titsias:2019} propose \uivi as an alternative to \sivi that directly maximizes the \elbo as an objective rather than a surrogate lower bound. The motivation for \uivi is that directly optimizing the \elbo objective should be more efficient than optimizing a surrogate and therefore should result in faster convergence to the optimal variational approximation. \textsc{Uivi} allows for an \elbo objective by rewriting the \elbo gradient in terms of two expectations. One expectation is easily estimated using Monte Carlo samples, while the other expectation is over an inverse conditional from which \uivi draws samples using Markov chain Monte Carlo (\mcmc) methods.
 
 \subsubsection{Unbiased implicit variational inference}
 
@@ -57,9 +57,9 @@ where $h_{\bfpsi}$ is some reparameterization function with parameters $\bfpsi$ 
 
 Under these assumptions, the \elbo can be rewritten as an expectation with respect to the noise distributions $q(\bfu)$ and $q(\bfeps)$ through a change of variables, and its gradient can be decomposed into two expectation terms given by
 \[
-\nabla_\theta \calL(\theta) = \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log q(\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] \;.
+\nabla_\theta \calL(\theta) = \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log q_\theta(\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] \;.
 \]
-The first expectation can be estimated using samples from $q(\bfeps)$ and $q(\bfu)$ while the second expectation is more difficult as $\nabla_z\log q(\bfz)$ may not be computable if $q(\bfz)$ is implicit. The first key trick in \uivi is to rewrite the gradient in the second term as an expectation given by
+The first expectation can be estimated using samples from $q(\bfeps)$ and $q(\bfu)$ while the second expectation is more difficult as $\nabla_\bfz\log q_\theta(\bfz)$ may not be computable if $q_\theta(\bfz)$ is implicit. The first key trick in \uivi is to rewrite the gradient in the second term as an expectation given by
 \[
 \nabla_z\log q(\bfz) = \E_{q_\theta(\bfeps|\bfz)}\left[\nabla_\bfz\log q_\theta(\bfz|\bfeps)\right]
 \]
@@ -78,7 +78,7 @@ Aside from the \uivi algorithm, other contributions of the paper by \citet{Titsi
 The paper by \citet{Titsias:2019} has a few limitations. The main limitation is the lack of theoretical guarantees for the performance and convergence of \uivi. For example, it is unclear what the modeling capabilities are for the \uivi variational family, and no guidance is given on how to construct the model such that the true posterior is in or at least well-approximated by a member of the variational family. It is also unclear how good of an approximation \uivi is able to guarantee through its optimization procedure. However, we recognize that this is a common problem across the \vi literature and generally stems from the challenge of analyzing general purpose methods that may include intractable and non-analytic components.
 \\
 
-Another notable limitation of the paper is the missing discussion of the limitations of \uivi. In particular, the showcased experiments do not stress test \uivi, and there is no mention of future directions for improving or extending \uivi. Related work published after the paper by \citet{Titsias:2019} reported limited scalability with the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of the stochastic optimization of the \elbo as well as the use of \mcmc, both for which require an increasing number of samples to maintain estimation quality in response to an increasing number of dimensions. The \mcmc sampling in the \uivi optimization procedure may also result in greater variance of the \elbo gradient estimates~\citep{Betancourt:2015} and further contribute to non-scalability by complicating potential parallelization of the algorithm~\citep{Sobolev:2019}. In some instances, other issues common to \mcmc approaches, such as poor mixing over different modes, appear to inhibit the performance of \uivi~\citep{Sobolev:2019}.
+Another notable limitation of the paper is the missing discussion of the limitations of \uivi. In particular, the showcased experiments do not stress test \uivi, and there is no mention of future directions for improving or extending \uivi. Related work published after the paper by \citet{Titsias:2019} reported limited scalability with the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of the stochastic optimization of the \elbo as well as the use of \mcmc, both for which require an increasing number of samples to maintain estimation quality in response to an increasing number of dimensions. The \mcmc sampling in the \uivi optimization procedure may also result in greater variance of the \elbo gradient estimates~\citep{Betancourt:2015} and further contribute to non-scalability by complicating potential parallelization of the algorithm~\citep{Sobolev:2019}. In some instances, other issues common to \mcmc approaches, such as poor mixing over different modes, appear to inhibit the performance of \uivi~\citep{Sobolev:2019}. \todo
 
 
 \subsection{Other related work} \label{an:postpaper}
@@ -110,24 +110,38 @@ Though the developments in the related literature are mostly methodological, the
 
 \subsection{Introduction} \label{sec:introduction}
 
-\todo
-
-To approximate $p(z|x)$, \uivi posits the variational family $\calQ$ of distributions of the form
-\[
-q_\theta(z) = \int q_\theta(z|\bfeps)q(\bfeps)\lambda(d\bfeps) \;.
-\]
-where the variational conditional $q_\theta(z|\bfeps)$ is reparameterizable and explicit, but the dependency on $\theta$ can be arbitrarily complex. \textsc{Uivi} also requires that the log-gradient $\nabla_z\log q_\theta(z|\bfeps)$ can be evaluated.
-\todo \elbo
-
-In this project, we discuss our attempts at analyzing the theoretical performance of \uivi. Although we are unable to make much progress due to time constraints, we at least suggest possible directions for continuing what is started in this work that are most likely to be fruitful.
+Variational inference (\vi) transform the problem of computing the posterior distribution $p(\bfz|\bfx)$ into a problem of minimizing the KL divergence (or equivalently, maximizing the evidence lower bound (\elbo)) between the posterior distribution and a simpler variational distribution $q_\bftheta(\bfz)$ with variational parameters $\bftheta$ belonging to some variational family $\calQ_\bftheta$~\citep{Jordan:1999}. The performance of \vi depends on the flexibility of the family $\calQ_\bftheta$ as well as the ability to optimize $\bftheta$ over this family. \citet{Yin:2018} introduced \textit{semi-implicit variational inference} (\sivi) in which components of the semi-implicit variational distribution could incorporate arbitrarily complex functions (e.g., deep networks) to expand its modeling capacity. However, \sivi relies on optimizing a lower bound of the \elbo objective which may lead to slower convergence rates.
 \\
 
-This report is organized as follows: Section~\ref{sec:notation} introduces the notation used throughout this report; Section~\ref{sec:approximation} discusses our characterization of the quality of the \uivi approximation for a particular choice of the variational conditional and mixing distributions; Section~\ref{sec:variance} describes our attempts of analyzing the variance of the \elbo gradient in \uivi; and Section~\ref{sec:discussion} summarizes our findings and the possible directions of future work.
+\citet{Titsias:2019} introduced \textit{unbiased implicit variational inference} (\uivi) as an alternative method to \sivi. Like \sivi, \uivi posits a flexible semi-implicit variational family to approximate the true posterior distribution. However, unlike \sivi, \uivi uses an unbiased estimator of the \elbo gradient which theoretically should lead to faster convergence of the optimization. While the experiments conducted by \citet{Titsias:2019} show promising results, theoretical analyses and guarantees are missing in their paper.
+\\
+
+In this project, we discuss our attempts at analyzing the theoretical performance of \uivi. Although we are unable to make much progress due to time constraints, we at least suggest possible directions for continuing what is started in this work that are most likely to be fruitful. \todo
+\\
+
+This report is organized as follows: Section~\ref{sec:background} provides a brief overview of \uivi; Section~\ref{sec:notation} introduces other notation used in this report; Section~\ref{sec:approximation} discusses our characterization of the quality of the \uivi approximation for a particular choice of the variational conditional and mixing distributions; Section~\ref{sec:variance} describes our attempts of analyzing the variance of the \elbo gradient in \uivi; and Section~\ref{sec:discussion} summarizes our findings and the possible directions of future work.
+
+
+\subsection{Background} \label{sec:background}
+
+\textsc{Uivi} approximates the true posterior distribution $p(\bfz|\bfx)$ using a variational distribution of the form
+\[
+q_\bftheta(\bfz) = \int q_\bftheta(\bfz|\bfeps)q(\bfeps)\lambda(d\bfeps)
+\]
+where the variational conditional $q_\theta(\bfz|\bfeps)$ is required to be reparameterizable and explicit but with the dependency on $\bftheta$ to be arbitrarily complex, and where $q(\bfeps)$ is some fixed auxiliary distribution. \textsc{Uivi} also requires that the log-gradient $\nabla_\bfz\log q_\bftheta(\bfz|\bfeps)$ can be evaluated. Under these assumptions, the gradient of the evidence lower bound (\elbo) in \uivi can be written as
+\[
+\nabla_\bftheta \calL(\bftheta) = \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log p(\bfx,\bfz)\big|_{\bfz=h_\bftheta(\bfu;\bfeps)}\nabla_\bftheta h_\bftheta(\bfu;\bfeps)\right] - \E_{q(\bfeps)q(\bfu)}\left[\nabla_\bfz \log q_\bftheta(\bfz)\big|_{\bfz=h_\bftheta(\bfu;\bfeps)}\nabla_\bftheta h_\bftheta(\bfu;\bfeps)\right]
+\]
+The first term in the gradient can be estimated using Monte Carlo samples from $q(\bfeps)$ and $q(\bfu)$. For the second term, as $\nabla_\bfz \log q_\bftheta(\bfz)$ may not necessarily be explicit, \uivi instead estimates its equivalent identity
+\[
+\nabla_\bfz \log q_\bftheta(\bfz) = \E_{q_\bftheta(\bfeps|\bfz)}\left[\nabla_\bfz\log q_\bftheta(\bfz|\bfeps)\right]
+\]
+using Monte Carlo samples drawn from the reverse conditional via Markov chain Monte Carlo (\mcmc) methods. To avoid needing a burn-in phase, \uivi reuses samples from estimating the outer expectation as initial points in the \mcmc.
 
 
 \subsection{Notation} \label{sec:notation}
 
-We briefly introduce other notation used in this report in addition to the notation introduced in Section~\ref{sec:introduction}. Let $\lambda$ denote the Lebesgue measure on the specified support of the mixing variable $\bfeps$. Let $\calB$ denote the Borel $\sigma$-algebra of $\bbR^d$ where $d$ is the dimension of the latent variable $\bfz$. Let $\phi_\sigma$ denote the density of a $\calN(0,\sigma^2\bfI_d)$ distribution. Note that we often denote both a distribution and its density by $q$ and let the context distinguish between which one is referred to. For densities $f$ and $q$, let $f*q(z)=\int_\calX f(z-x)q(x)dx$ denote the convolution of $f$ and $q$.
+We briefly introduce other notation used in this report in addition to the notation introduced in Section~\ref{sec:background}. Let $\lambda$ denote the Lebesgue measure on the specified support of the mixing variable $\bfeps$. Let $\calB$ denote the Borel $\sigma$-algebra of $\bbR^d$ where $d$ is the dimension of the latent variable $\bfz$. Let $\phi_\sigma$ denote the density of a $\calN(0,\sigma^2\bfI_d)$ distribution. Note that we often denote both a distribution and its density by $q$ and let the context distinguish between which one is referred to. For densities $f$ and $q$, let $f*q(z)=\int_\calX f(z-x)q(x)dx$ denote the convolution of $f$ and $q$.
 
 
 \subsection{Quality of approximation} \label{sec:approximation}
@@ -214,28 +228,58 @@ Another idea is to characterize the quality in terms of the error from estimatin
 
 \subsection{Variance of gradient} \label{sec:variance}
 
-\todo high dimension
+It is known that the performance of standard \sivi suffers when the dimensionality $d$ of the latent variable increases with \citet{Molchanova:2019} citing the reason being that the variational distribution $q_\bftheta(\bfz)$ is approximated with $K+1$ Gaussian distributions (where $K$ is the mixture size) when estimating the \elbo gradient. As the number of dimensions increases, the mixture size $K$ needs to increase exponentially in order to maintain a reasonable approximation. In this section, we attempt to show that \uivi shares a similar problem where the \elbo gradient is estimated using a finite mixture of Gaussians. \todo
+\\
 
-unbiased \elbo gradient estimator
+An unbiased Monte Carlo estimator of the \elbo gradient in \uivi is given by
 \[
-\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}') = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} \right)\nabla_\theta h_\theta(\bfu_i;\bfeps_i)
+\widehat{\nabla}_\bftheta\calL(\bftheta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}') = \frac{1}{n}\sum_{i=1}^n \left(\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu_i;\bfeps_i)} - \frac{1}{m}\sum_{j=1}^m \nabla_\bfz\log q_\bftheta(\bfz|\bfeps_j')\big|_{\bfz=h_\bftheta(\bfu_i;\bfeps_i)} \right)\nabla_\bftheta h_\bftheta(\bfu_i;\bfeps_i)
 \]
-$n=1$ used in practice, would like to study variance as $q_\theta(\bfz)$ approaches $p(\bfx,\bfz)$ but arbitrary function complicates analysis. Assume $q_\theta(\bfz|\bfeps)$ Gaussian
+where $\bfu_{1:n}$ are $n$ \iid samples from $\calN(0,\bfI_d)$, $\bfeps_{1:n}$ are $n$ \iid samples from $q(\bfeps)$, and $\bfeps_{1:m}'$ are $m$ \mcmc samples drawn from $q(\bfeps|\bfz)$. It is said that $n=1$ is used in practice and $m$ is kept small ($m=5$ in the experiments by \citet{Titsias:2019}). Intuitively, the problem of approximating the \elbo gradient with a Gaussian mixture described above appears in the second term where if the variational conditional $q_\bftheta(\bfz|\bfeps)$ is taken to be Gaussian, then each sampled $\bfeps_j'$ corresponds to a single sampled Gaussian distribution. From this perspective, the number of samples $m$ plays a similar role to the mixture size $K$ in \sivi. However, although this interpretation of sampling Gaussians holds, it is not immediately obvious that this necessarily impacts the performance of \uivi in high dimensions as the contribution of each sampled Gaussian to the gradient estimate is through their score function. Therefore, we aim to better understand the properties of this gradient estimator by studying its variance.
+\\
 
-Let $L_\theta(\bfu,\bfeps,\bfeps_{1:m}')=\widehat{\nabla}_\theta\calL(\theta;\bfu_{1:n},\bfeps_{1:n},\bfeps_{1:m}')$ and let $L_\theta(\bfeps_{1:m}')=\E_{\bfu,\bfeps}\left[L_\theta(\bfu,\bfeps,\bfeps_{1:m}')|\bfeps_{1:m}'\right]$. Then following the idea underlying Rao-Blackwellization~\citep{Ranganath:2014},
+In particular, it is of interest to understand how the variance of this estimator behaves as the variational distribution approaches the true posterior distribution. If the true distribution lives in a high dimensional space, we may intuitively expect that as our variational distribution conforms to the true distribution, our sampled Gaussian distributions may also become more varied. Such an issue would pose a problem for convergence, and so we attempt to analyze the variance in this setting. In our analysis, we assume that $\bftheta$ is fixed and is exactly or close to the value such that $q_\bftheta(\bfz)=p(\bfz|\bfx)$. As mentioned above, we assume that $q_\bftheta(\bfz|\bfeps)$ is Gaussian.
+\\
+
+Deriving the variance of the gradient estimator is not straightforward due to the various sampled components and the potentially complex mappings in $h_\bftheta(\bfu;\bfeps)$. To simplify the analysis, we consider the case $n=1$. We also follow the idea underlying Rao-Blackwellization~\citep{Ranganath:2014} and define the functions
+\begin{align*}
+L_\bftheta(\bfu,\bfeps,\bfeps_{1:m}') &= \widehat{\nabla}_\bftheta\calL(\bftheta;\bfu,\bfeps,\bfeps_{1:m}') \;, \\
+L_\bftheta(\bfeps_{1:m}') &= \E_{\bfu,\bfeps}\left[L_\bftheta(\bfu,\bfeps,\bfeps_{1:m}')|\bfeps_{1:m}'\right] \;.
+\end{align*}
+It then follows that
 \[
-\var\left(L_\theta(\bfeps_{1:m}')\right) = \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) + \E_{\bfu,\bfeps,\bfeps'}\left[\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')-L_\theta(\bfeps_{1:m}')\right)^2\right]
+\var\left(L_\bftheta(\bfeps_{1:m}')\right) = \var\left(L_\bftheta(\bfu,\bfeps,\bfeps_{1:m}')\right) + \E_{\bfu,\bfeps,\bfeps'}\left[\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')-L_\bftheta(\bfeps_{1:m}')\right)^2\right]
 \]
 and so
 \[
-\var\left(L_\theta(\bfeps_{1:m}')\right) \leq \var\left(L_\theta(\bfu,\bfeps,\bfeps_{1:m}')\right) \;.
+\var\left(L_\bftheta(\bfeps_{1:m}')\right) \leq \var\left(L_\bftheta(\bfu,\bfeps,\bfeps_{1:m}')\right) \;.
 \]
-The variance is lower bounded and we will see that the lower bound is more interpretable. We have
+The function $L_\bftheta(\bfeps_{1:m}')$ is easier to analyze and examining its variance is equivalent to examining a lower bound of the variance of the full gradient estimator. The function has the form
+\[
+L_\bftheta(\bfeps_{1:m}') = \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\bftheta(\bfu;\bfeps)}\nabla_\bftheta h_\bftheta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\bftheta(\bfz|\bfeps_j')\big|_{\bfz=h_\bftheta(\bfu;\bfeps)} \nabla_\bftheta h_\bftheta(\bfu;\bfeps)\right] \;.
+\]
+Note that the first term is constant. Furthermore, the second term retains the interpretation of sampling individual Gaussians through sampling $\bfeps_j'$.
+\\
+
+As the gradient of the \elbo is a vector, we consider the variance of the estimator for the $i$-th parameter given by
 \begin{align*}
-L_\theta(\bfeps_{1:m}') &= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)} \nabla_\theta h_\theta(\bfu;\bfeps)\right] \\
-&= \E_{\bfu,\bfeps}\left[\nabla_\bfz\log p(\bfx,\bfz)\big|_{\bfz=h_\theta(\bfu;\bfeps)}\nabla_\theta h_\theta(\bfu;\bfeps)\right] - \frac{1}{m}\sum_{j=1}^m\E_{\bfu,\bfeps}\left[\nabla_\theta\log q_\theta(\bfz|\bfeps_j')\big|_{\bfz=h_\theta(\bfu;\bfeps)}\right] \;.
+\var(L_\bftheta(\bfeps_{1:m}')_i) &= \frac{1}{m}\var\left(\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\bftheta(\bfz|\bfeps')\big|_{\bfz=h_\bftheta(\bfu;\bfeps)} \nabla_{\theta_i} h_\bftheta(\bfu;\bfeps)\right]\right) \\
+&= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\nabla_\bfz\log q_\bftheta(\bfz|\bfeps')\big|_{\bfz=h_\bftheta(\bfu;\bfeps)} \nabla_{\theta_i} h_\bftheta(\bfu;\bfeps)\right]^2\right]
 \end{align*}
-Note that the first term is constant. Given a particular $\bfeps_j'$, the second term can be interpreted as the expected score function of a sampled Gaussian distribution evaluated at some fixed $\theta$. Suppose that $q(\bfz)\approx p(\bfx,\bfz)$ and so \todo $\theta$
+using the fact that
+\[
+\E_{\bfu,\bfeps,\bfeps'}\left[\nabla_\bfz\log q_\bftheta(\bfz|\bfeps')\big|_{\bfz=h_\bftheta(\bfu;\bfeps)} \nabla_{\theta_i} h_\bftheta(\bfu;\bfeps)\right] = \E_{\bfu,\bfeps,\bfeps'}\left[\nabla_{\theta_i}\log q_\bftheta(\bfz|\bfeps')\big|_{\bfz=h_\bftheta(\bfu;\bfeps)}\right] \approx 0
+\]
+under the assumption that $q_\bftheta(\bfz)\approx p(\bfz|\bfx)$. We can simplify the variance expression further by plugging in the Gaussian score function, which gives
+\begin{align*}
+\var(L_\bftheta(\bfeps_{1:m}')_i) &= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\left(\Sigma_\bftheta(\bfeps')^{-1}(h_\bftheta(\bfu;\bfeps)-\mu_\bftheta(\bfeps'))\right)^\T\nabla_{\theta_i} h_\theta(\bfu;\bfeps)\right]^2\right] \\
+&= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\left(\Sigma_\bftheta(\bfeps')^{-1}(\left(\mu_\bftheta(\bfeps)+\Sigma_\bftheta(\bfeps)\bfu\right)-\mu_\bftheta(\bfeps'))\right)^\T\nabla_{\theta_i} h_\bftheta(\bfu;\bfeps)\right]^2\right] \\
+&= \frac{1}{m}\E_{\bfeps'}\left[\E_{\bfu,\bfeps}\left[\left(\Sigma_\bftheta(\bfeps')^{-1}(\mu_\bftheta(\bfeps)-\mu_\bftheta(\bfeps'))+\Sigma_\bftheta(\bfeps')^{-1}\Sigma_\bftheta(\bfeps)\bfu\right)^\T\nabla_{\theta_i} h_\bftheta(\bfu;\bfeps)\right]^2\right] \;.
+\end{align*}
+At this point, we find that it is difficult to proceed without further assumptions on $\Sigma_\bftheta$ and $\mu_\bftheta$. One idea may be to impose a smoothness assumption on $\mu_\bftheta$ such that the difference in evaluations at $\bfeps$ and $\bfeps'$ can be bounded. Another idea is to assume that $\mu_{\bftheta_1}$ and $\Sigma_{\bftheta_2}$ do not share parameters and so $\nabla_{\theta_i}h_\bftheta(\bfu;\bfeps)$ can be simplified in terms of only the function that $\theta_i$ is used in.
+\\
+
+Though we are unable to progress further due to time constraints on this project, we can reason a few (perhaps obvious) conclusions from the above derivations. The lower bound to the variance of the original gradient estimator decreases as the number of samples $m$ increases, which decreases the variation due to sampling the individual Gaussians. Also, the effect of the dimension of $\bfz$ can only come into play in this Gaussian sampling through the (squared) score. If the score function depends on $d$ at a rate greater than that of $O(\sqrt{d})$, then $m$ needs to scale faster than linear with $d$ in order to maintain the lower bound. Otherwise, $m$ can compensate for increases in dimension by scaling linearly with $d$.
 
 
 \subsection{Discussion} \label{sec:discussion}
