@@ -382,3 +382,5 @@ elseif(strcmp(pxz.model, 'bananaND'))
 else
     error(['Unknown model: ' pxz.model]);
 end
+
+var(out.stochasticBound(500:end))

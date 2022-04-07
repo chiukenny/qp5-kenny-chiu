@@ -78,7 +78,7 @@ Aside from the \uivi algorithm, other contributions of the paper by \citet{Titsi
 The paper by \citet{Titsias:2019} has a few limitations. The main limitation is the lack of theoretical guarantees for the performance and convergence of \uivi. For example, it is unclear what the modeling capabilities are for the \uivi variational family, and no guidance is given on how to construct the model such that the true posterior is in or at least well-approximated by a member of the variational family. It is also unclear how good of an approximation \uivi is able to guarantee through its optimization procedure. However, we recognize that this is a common problem across the \vi literature and generally stems from the challenge of analyzing general purpose methods that may include intractable and non-analytic components.
 \\
 
-Another notable limitation of the paper is the missing discussion of the limitations of \uivi. In particular, the showcased experiments do not stress test \uivi, and there is no mention of future directions for improving or extending \uivi. Related work published after the paper by \citet{Titsias:2019} reported limited scalability with the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of the stochastic optimization of the \elbo as well as the use of \mcmc, both for which require an increasing number of samples to maintain estimation quality in response to an increasing number of dimensions. The \mcmc sampling in the \uivi optimization procedure may also result in greater variance of the \elbo gradient estimates~\citep{Betancourt:2015} and further contribute to non-scalability by complicating potential parallelization of the algorithm~\citep{Sobolev:2019}. In some instances, other issues common to \mcmc approaches, such as poor mixing over different modes, appear to inhibit the performance of \uivi~\citep{Sobolev:2019}. \todo gaussian interpretation
+Another notable limitation of the paper is the missing discussion of the limitations of \uivi. In particular, the showcased experiments do not stress test \uivi, and there is no mention of future directions for improving or extending \uivi. Related work published after the paper by \citet{Titsias:2019} reported limited scalability with the number of latent parameters~\citep{Molchanova:2019,Moens:2021}. This is likely a consequence of the stochastic optimization of the \elbo as well as the use of \mcmc, both for which generally require an increasing number of samples to maintain estimation quality in response to an increasing number of dimensions. The \mcmc sampling in the \uivi optimization procedure may also result in greater variance of the \elbo gradient estimates~\citep{Betancourt:2015} and further contribute to non-scalability by complicating potential parallelization of the algorithm~\citep{Sobolev:2019}. In some instances, other issues common to \mcmc approaches, such as poor mixing over different modes, appear to inhibit the performance of \uivi~\citep{Sobolev:2019}.
 
 
 \subsection{Other related work} \label{an:postpaper}
@@ -104,11 +104,11 @@ Though the developments in the related literature are mostly methodological, the
 \Large An attempt to analyze the theoretical properties of\\unbiased implicit variational inference
 \end{center}
 
-\vspace{2em}
+\vspace{1em}
 \begin{abstract}
-\todo
+\citet{Titsias:2019} introduced unbiased implicit variational inference (\uivi) as an efficient alternative to semi-implicit variational inference. However, the theoretical properties and guarantees of \uivi are largely unknown and only conjectured in follow-up work based on empirical experiments. We show that for a particular choice of the conditional and mixing distributions that make up the variational distribution in \uivi, the \uivi approximation is able to get arbitrarily close to the true posterior distribution under certain assumptions. We also discuss potential convergence issues of \uivi in the case of high dimensions and provide an initial attempt in analyzing the variance of the \elbo gradient estimator. We then suggest several directions for future work that may lead to a proper analysis of the theoretical properties of \uivi.
 \end{abstract}
-\vspace{2em}
+\vspace{1em}
 
 \subsection{Introduction} \label{sec:introduction}
 
@@ -286,7 +286,7 @@ Though we are unable to progress further due to time constraints on this project
 
 \subsubsection{Experiments}
 
-For this project, we aimed to have experiments that investigated the empirical performance of \uivi in high dimensions but were unable to properly carry them out due to time constraints. We briefly discuss what we tried, preliminary results that we obtained, and the investigations that we had hoped to conduct in this section.
+For this project, we aimed to have experiments that investigated the empirical performance of \uivi in high dimensions but were unable to properly carry them out in time. We briefly discuss what we tried, preliminary results that we obtained, and the investigations that we had hoped to conduct in this section.
 \\
 
 The code repository\footnote{\url{https://github.com/franrruiz/uivi}} owned by \citeauthor{Titsias:2019} included an implementation of \uivi and \sivi in MATLAB. A number of the experiments conducted in their paper were implemented and runnable as part of a \uivi demo file. We extended their synthetic two-dimensional banana distribution experiment to one in $d$-dimensions. We chose the banana distribution over the Gaussian mixture distribution as it seemed it would be more difficult to approximate using a sample of Gaussians. Samples from our $d$-dimensional banana distribution are generated through the following procedure:
@@ -313,7 +313,7 @@ w_d + w_1^2 + 1
 \end{bmatrix} \;.
 \]
 \end{enumerate}
-The resulting distribution is a high-dimensional ``banana'' distribution. For example, Figure~\ref{fig:3Dbanana} shows the cross-section of the density (and samples) when $d=3$.
+The resulting distribution is a high-dimensional ``banana'' distribution. For example, Figure~\ref{fig:3Dbanana} shows the cross-sections of the density (and samples) when $d=3$.
 \\
 
 \begin{figure}[t]
@@ -339,15 +339,31 @@ As the dimension $d$ increases, the \elbo converges to a more negative value but
 \item
 As the number of \mcmc samples $m$ increases, the \elbo variance does not decrease.
 \end{enumerate}
-We were unable to look into why we obtained these results in time. It may be that the high-dimensional banana distribution is not as difficult to approximate using Gaussians as we expected. We also cannot rule out the possibility of bugs in the code as well. \todo
+Figure~\ref{fig:uiviresults} shows these results. We were unable to look into why we obtained these results in time. It may be that the high-dimensional banana distribution is not as difficult to approximate using Gaussians as we expected. We also cannot rule out the possibility of bugs in the code as well. \todo
 \\
 
-increasing $K$ in \sivi, variances does not decrease; \uivi performed better even with $m=1$
+\begin{figure}[t]
+\centering
+\todo
+\caption{}
+\label{fig:uiviresults}
+\end{figure}
+
+Curiously, running the above experiments with \sivi also returned unexpected results. In particular, we found that increasing $K$ did not decrease the variance of the \elbo. Furthermore, the performance of \sivi with $K=50$ led to a notably smaller value of the \elbo compared to \uivi with $m=1$, and increasing $K=100$ did not improve the performance.
 
 \todo collect variance?
 \\
 
-If more time, look into other high-dimensional synthetic distributions and comparisons to other non-implicit \vi methods.
+Given more time, we would have aimed to do the following:
+\begin{enumerate}
+
+\item
+Repeat these experiments with other high-dimensional synthetic distributions (e.g., high-dimensional Gaussian mixtures). If the results look relatively consistent across distributions, then it makes for a stronger case that the dimensionality problem is an inherent problem of \uivi and not just due to a quirk of the synthetic distribution of choice.
+
+\item
+Compare the implicit \vi methods (\uivi and \sivi) to non-implicit \vi methods. Existing works have suggested that these curse of dimensionality problems are not limited to only \uivi but also other implicit \vi methods such as \sivi as well~\citep{Molchanova:2019,Moens:2021}. If other methods that are specifically designed to address this issue of dimensionality (e.g., \textit{structured} \sivi~\citep{Molchanova:2019}) indeed have improved performance on the same experiments, then this would provide further evidence that \uivi suffers from this limitation.
+
+\end{enumerate}
 
 
 \subsection{Discussion} \label{sec:discussion}
@@ -355,10 +371,10 @@ If more time, look into other high-dimensional synthetic distributions and compa
 In this project, we attempted to analyze the theoretical performance of \uivi. Through a simple example, we showed that relying solely on the hierarchical form of the variational distribution is insufficient for obtaining a flexible variational family. We also showed that for a particular choice of the variational conditional and mixing distributions, the variational distribution in \uivi has an equivalent form as a Gaussian convolution. Then under the assumption that the map that transforms the noise is able to learn the inverse CDF of the posterior, we proved that the true posterior distribution is a member of the limiting variational family as the kernel bandwidth goes to zero.
 \\
 
-We also attempted to analyze the variance of the \elbo gradient estimator. We discussed the intuition that \uivi can be seen as estimating the \elbo gradient using sampled Gaussian distributions and explained why this may be problematic in high-dimensional problems. We then derived a lower bound of the estimator variance that may be useful if additional assumptions are imposed on the implicit functions. \todo experiments
+We also attempted to analyze the variance of the \elbo gradient estimator. We discussed the intuition that \uivi can be seen as estimating the \elbo gradient using sampled Gaussian distributions and explained why this may be problematic in high-dimensional problems. We then derived a lower bound of the estimator variance that may be useful if additional assumptions are imposed on the implicit functions.
 \\
 
-The work in this project has been mainly exploratory, though a few ideas have been identified that may be of interest for follow-up work. The work by \citet{Plummer:2021} provides an interesting starting point for the theoretical analyses of implicit variational inference methods. While we have applied their approach to show the capacity of the variational family in \uivi as an initial result, the theory can likely be pushed further as discussed in Section~\ref{sec:future:approximation}. In terms of the variance of the \elbo gradient estimator, our result is incomplete and there is still much work to be done. \todo experiments
+The work in this project has been mainly exploratory, though a few ideas have been identified that may be of interest for follow-up work. The work by \citet{Plummer:2021} provides an interesting starting point for the theoretical analyses of implicit variational inference methods. While we have applied their approach to show the capacity of the variational family in \uivi as an initial result, the theory can likely be pushed further as discussed in Section~\ref{sec:future:approximation}. In terms of the variance of the \elbo gradient estimator, our theoretical analysis is incomplete and there is still much work to be done. Our experiments are also incomplete, and the preliminary results are unintuitive and require deeper investigation.
 
 
 \newpage
