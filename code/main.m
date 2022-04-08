@@ -1,5 +1,6 @@
 function main(model_name, method_name, SamplingIters, dim_z, BurnIters)
-% This is the code for UIVI.
+% Run this function to run the experiments discussed in the report.
+% Original code by Titsias and Ruiz (2019).
 % 
 % INPUTS:
 %   + model_name: Specify the model. It can take on one of these values:
@@ -8,8 +9,8 @@ function main(model_name, method_name, SamplingIters, dim_z, BurnIters)
 %     {'sivi', 'usivi'}
 %   + dim_z: If 'bananaND', the dimension of the latent variable.
 %     [default: 10]
-%   + SamplingIters: Number of samples obtained in the HMC procedure. For
-%                    SIVI, the value of K.
+%   + SamplingIters: For UIVI, number of samples obtained in the HMC procedure.
+%                    For SIVI, value of K.
 %     [default: 5 (usivi) or 50 (sivi)]
 %   + BurnIters: Number of burning iterations for the HMC chain
 %     [default: 5]
@@ -41,7 +42,7 @@ addpath logdensities/;
 addpath plots/;
 
 % Parameters
-param.outdir = '../out/';               % Output directory
+param.outdir = 'out/';               % Output directory
 pxz.model = model_name;
 pxz.data = '';
 param.Nsamples = 1;
@@ -76,7 +77,7 @@ elseif(strcmp(pxz.model, 'banana3D'))
     % Model definition
     dim_z = 3;                      % Dimensionality of z
     pxz.logdensity = @logdensityBanana3D;
-    pxz.inargs{1} = [0 0 0];          % Mean vector data
+    pxz.inargs{1} = [0 0 0];        % Mean vector data
     Sigma = [1 0.9 0.9; 0.9 1 0.9; 0.9 0.9 1];
     pxz.inargs{2} = chol(Sigma)';   % Cholesky decomposition of the covariance matrix
     pxz.inargs{3} = 1;              % 1st bananity parameter
@@ -90,7 +91,7 @@ elseif(strcmp(pxz.model, 'bananaND'))
     
     % Model definition
     pxz.logdensity = @logdensityBananaND;
-    pxz.inargs{1} = zeros(1,dim_z);          % Mean vector data
+    pxz.inargs{1} = zeros(1,dim_z); % Mean vector data
     Sigma = ones(dim_z)*0.9 + diag(ones(dim_z,1))*0.1;
     pxz.inargs{2} = chol(Sigma)';   % Cholesky decomposition of the covariance matrix
     pxz.inargs{3} = 1;              % 1st bananity parameter
@@ -137,7 +138,7 @@ param.mcmc.SamplingIters = SamplingIters;
 param.mcmc.AdaptDuringBurn = 1;
 param.mcmc.LF = 5;                % leap frog steps
 mcmc.algorithm = @hmc;
-mcmc.inargs{1} = 0.2; % 1/dim_z;  % initial step size parameter delta
+mcmc.inargs{1} = 0.2;             % initial step size parameter delta
 mcmc.inargs{2} = param.mcmc.BurnIters;
 mcmc.inargs{3} = param.mcmc.SamplingIters; 
 mcmc.inargs{4} = param.mcmc.AdaptDuringBurn; 
@@ -198,7 +199,8 @@ for it=1:param.iters
         grad_theta_b{cc} = zeros(size(vardist.net{cc}.b));
     end
     
-    % Sample auxiliary noise epsilon_0 for the sivi method and pass it through the NN to obtain the parameters of the conditional
+    % Sample auxiliary noise epsilon_0 for the sivi method and pass it
+    % through the NN to obtain the parameters of the conditional
     if(strcmp(param.method, 'sivi'))
         epsilon_0 = randn(param.sivi.K, param.dim_noise);
         net_0 = netforward(vardist.net, epsilon_0);
@@ -341,19 +343,19 @@ end
 
 %% Make plots
 
+% Plot parameters
 if(strcmp(param.method, 'sivi'))
     param_c = 'K';
 else
     param_c = 'm';
 end
-plt_w = 5.5
-plt_h = 4
+plt_w = 5.5;
+plt_h = 4;
 
-% Plot smoothed ELBO (log-p)
+% Plot smoothed ELBO
 figure;
 smth = 50;
 smoothed_stochasticBound = tsmovavg(out.stochasticBound, 's', smth, 2);
-%plot(cumsum(out.telapsed), smoothed_stochasticBound, 'r', 'linewidth', 0.5);
 plot(linspace(0,param.iters,length(smoothed_stochasticBound)), smoothed_stochasticBound, 'r', 'linewidth', 0.25);
 xlim([0,param.iters]);
 ylim([min(smoothed_stochasticBound(250:end))-1,0]);
@@ -364,7 +366,7 @@ name = [param.outdir pxz.dataName '_' param.method '_ELBO_movavg' num2str(smth) 
 figurepdf(plt_w, plt_h);
 print('-dpdf', [name '.pdf']);
 
-% Other plots
+% Plot contours and samples
 name = [param.outdir pxz.model '_' pxz.dataName '_' param.method '_results' namelabel '.mat'];
 if(strcmp(pxz.model, 'banana') || strcmp(pxz.model, 'banana3D'))
     T = 1000;
@@ -374,10 +376,6 @@ elseif(strcmp(pxz.model, 'bananaND'))
 else
     error(['Unknown model: ' pxz.model]);
 end
-
-% Print variance of last (iters-500) ELBO estimates
-fprintf(['d=%d, %c=%d\n'], dim_z, param_c, param.mcmc.SamplingIters);
-fprintf('Var(ELBO(1000:%d))=%f\n', param.iters, var(out.stochasticBound(1000:end)));
 
 % Plot gradients
 figure;
@@ -394,7 +392,7 @@ print('-dpdf', [name '.pdf']);
 figure;
 plot(linspace(0,param.iters,length(grads_theta_W11)), grads_theta_W11, 'r', 'linewidth', 0.25);
 xlim([0,param.iters]);
-%ylim([min(grads_theta_W11(1000:end)),max(grads_theta_W11(1000:end))+0.01]*1.3);
+% ylim([min(grads_theta_W11(1000:end)),max(grads_theta_W11(1000:end))+0.01]*1.3); % Has problems with 0 gradients
 title(['d = ' num2str(dim_z) ', ' param_c ' = ' num2str(param.mcmc.SamplingIters)])
 xlabel('Iteration')
 ylabel('\nabla W_{11}')
@@ -413,7 +411,9 @@ name = [param.outdir pxz.dataName '_' param.method '_gb11_d' num2str(dim_z) '_' 
 figurepdf(plt_w, plt_h);
 print('-dpdf', [name '.pdf']);
 
-% Print variance of last (iters-500) ELBO estimates
+% Print variance of last (iters-1000) ELBO and gradient estimates
+fprintf('d=%d, %c=%d\n', dim_z, param_c, param.mcmc.SamplingIters);
+fprintf('Var(ELBO(1000:%d))=%f\n', param.iters, var(out.stochasticBound(1000:end)));
 fprintf('Var(dsigma1(1000:%d))=%f\n', param.iters, var(grads_sigma1(1000:end)));
 fprintf('Var(dW11(1000:%d))=%f\n', param.iters, var(grads_theta_W11(1000:end)));
 fprintf('Var(db11(1000:%d))=%f\n', param.iters, var(grads_theta_b11(1000:end)));
